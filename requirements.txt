@@ -1,0 +1,9 @@
+numpy
+pillow
+django-cors-headers
+django
+djangorestframework
+torch
+torchvision
+streamlit-option-menu
+reportlab
