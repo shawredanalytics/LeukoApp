@@ -1,2 +1,2 @@
-Heamdetect website streamlit edition
+Leuko App - Blood Cancers Prediction Tool
 
