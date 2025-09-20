@@ -446,6 +446,92 @@ def main():
                 st.warning("• Not intended for clinical diagnosis or treatment")
                 st.warning("• Always consult healthcare professionals for medical advice")
                 st.warning("• Results should not replace professional medical evaluation")
+            
+            # Legal and Regulatory Disclaimers
+            st.markdown("---")
+            st.subheader("⚖️ Legal and Regulatory Disclaimers")
+            
+            # Create expandable legal section for detailed terms
+            with st.expander("📋 **IMPORTANT: Click to Read Full Legal Terms**", expanded=False):
+                st.markdown("""
+                ### 🚫 **PROHIBITED USES**
+                
+                **This AI model and application are STRICTLY PROHIBITED from being used for:**
+                
+                - ❌ **Clinical Diagnosis**: Making medical diagnoses for patient care
+                - ❌ **Treatment Decisions**: Guiding medical treatment or therapy choices  
+                - ❌ **Live Patient Testing**: Real-time diagnostic testing in clinical settings
+                - ❌ **Medical Screening**: Population or individual health screening programs
+                - ❌ **Emergency Medicine**: Any emergency or urgent care situations
+                - ❌ **Regulatory Submissions**: FDA, CE marking, or other regulatory filings
+                - ❌ **Commercial Diagnostics**: Sale or distribution as a diagnostic device
+                
+                ### ✅ **PERMITTED USES ONLY**
+                
+                **This tool is designed exclusively for:**
+                
+                - ✅ **Educational Purposes**: Learning about AI in medical imaging
+                - ✅ **Research Applications**: Academic and scientific research projects
+                - ✅ **Algorithm Development**: Improving AI diagnostic methodologies
+                - ✅ **Training Programs**: Medical education and AI training curricula
+                - ✅ **Proof of Concept**: Demonstrating AI capabilities in controlled environments
+                
+                ### ⚖️ **LEGAL DISCLAIMERS**
+                
+                **By using this application, you acknowledge and agree that:**
+                
+                1. **No Medical Device Clearance**: This software has NOT been cleared, approved, or authorized by the FDA, CE, Health Canada, or any other regulatory body for medical use.
+                
+                2. **No Clinical Validation**: The model has not undergone clinical trials or validation studies required for medical devices.
+                
+                3. **Research Tool Only**: This is a research prototype and educational demonstration tool only.
+                
+                4. **No Warranty**: The software is provided "AS IS" without any warranties, express or implied, regarding accuracy, reliability, or fitness for any particular purpose.
+                
+                5. **Limitation of Liability**: The developers, Shawred Analytics, and associated parties shall not be liable for any damages arising from the use or misuse of this software.
+                
+                6. **Professional Responsibility**: Healthcare professionals must rely on their clinical judgment, established diagnostic procedures, and appropriate medical testing.
+                
+                7. **No Substitute for Medical Care**: This tool does not replace proper medical examination, laboratory tests, or professional medical consultation.
+                
+                ### 🏥 **FOR HEALTHCARE PROFESSIONALS**
+                
+                **If you are a healthcare professional:**
+                
+                - This tool should NEVER influence patient care decisions
+                - Always follow established clinical protocols and guidelines
+                - Use only validated, FDA-approved diagnostic tools for patient care
+                - Maintain professional standards and ethical obligations
+                - Report any misuse of this tool in clinical settings
+                
+                ### 📞 **REPORTING MISUSE**
+                
+                **If you become aware of this tool being used inappropriately for clinical care, please report to:**
+                - Email: shawred.analytics@gmail.com
+                - Subject: "Inappropriate Clinical Use Report"
+                
+                ### 📅 **TERMS ACCEPTANCE**
+                
+                **Continued use of this application constitutes acceptance of these terms.**
+                **Last Updated: January 2024**
+                """)
+            
+            # Prominent warning banner
+            st.error("""
+            🚨 **CRITICAL WARNING**: This AI model is NOT approved for clinical use. 
+            Using this tool for patient diagnosis or treatment decisions is PROHIBITED and may be DANGEROUS.
+            Always consult qualified healthcare professionals for medical advice.
+            """)
+            
+            # Regulatory compliance notice
+            st.info("""
+            📋 **Regulatory Compliance**: This software is intended for research and educational use only. 
+            It has not been evaluated by the FDA or other regulatory agencies for medical device use.
+            """)
+            
+            # Contact information for legal inquiries
+            st.markdown("---")
+            st.markdown("**📧 Legal Inquiries**: For questions about appropriate use, contact shawred.analytics@gmail.com")
         
         # Sample images section completely removed as requested
 
