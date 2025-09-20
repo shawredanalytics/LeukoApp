@@ -338,6 +338,53 @@ def main():
                 st.warning("⚠️ **Moderate Confidence**: The model has reasonable certainty, but consider additional analysis.")
             else:
                 st.error("❌ **Low Confidence**: The model is uncertain. Results should be interpreted with caution.")
+                
+                # Explain reasons for low confidence
+                st.markdown("**🔍 Possible Reasons for Low Confidence:**")
+                reasons = []
+                
+                # Check for borderline predictions
+                if prediction_certainty < 20:
+                    reasons.append("• **Borderline Case**: The probabilities are very close (difference < 20%)")
+                
+                # Check for image quality issues
+                if is_low_resolution:
+                    reasons.append("• **Low Image Resolution**: Image quality may affect model performance")
+                
+                # Check for demo mode
+                if demo:
+                    reasons.append("• **Demo Mode**: Using simulated predictions instead of trained model")
+                
+                # Check for ambiguous predictions (both probabilities in middle range)
+                if 30 <= normal_prob <= 70 and 30 <= leukemia_prob <= 70:
+                    reasons.append("• **Ambiguous Features**: Image contains mixed or unclear cellular characteristics")
+                
+                # Check temperature scaling effect
+                if not demo and temp_value != 1.0:
+                    if temp_value > 1.0:
+                        reasons.append(f"• **Conservative Calibration**: Temperature scaling ({temp_value:.2f}) reduces overconfidence")
+                    else:
+                        reasons.append(f"• **Aggressive Calibration**: Temperature scaling ({temp_value:.2f}) may increase uncertainty")
+                
+                # General reasons if no specific ones identified
+                if not reasons:
+                    reasons.extend([
+                        "• **Complex Image**: The image may contain challenging or atypical features",
+                        "• **Edge Case**: The sample may be at the boundary between normal and abnormal",
+                        "• **Model Uncertainty**: The neural network is genuinely uncertain about this case"
+                    ])
+                
+                # Display reasons
+                for reason in reasons:
+                    st.markdown(reason)
+                
+                # Recommendations for low confidence
+                st.markdown("**💡 Recommendations:**")
+                st.markdown("• Consider obtaining a higher quality image if possible")
+                st.markdown("• Seek expert medical opinion for definitive diagnosis")
+                st.markdown("• Additional laboratory tests may be warranted")
+                if demo:
+                    st.markdown("• Train and load the actual model for real predictions")
             
             # Additional confidence details
             with st.expander("🔍 Detailed Confidence Metrics"):
