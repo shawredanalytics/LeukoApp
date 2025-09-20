@@ -3,14 +3,21 @@ import torch
 from torchvision.models import googlenet, GoogLeNet_Weights
 import torch.nn as nn
 from torchvision import transforms
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 from streamlit_option_menu import option_menu
 import os
 import logging
 import sys
 import numpy as np
 from collections import OrderedDict
-import cv2  # Added for screen capture enhancement
+
+# Optional OpenCV import for advanced screen capture features
+try:
+    import cv2
+    HAS_OPENCV = True
+except ImportError:
+    HAS_OPENCV = False
+    st.warning("⚠️ OpenCV not available - using basic image processing. For enhanced screen capture support, install opencv-python")
 
 # ----------------- LOGGING SETUP -----------------
 logging.basicConfig(
@@ -144,93 +151,155 @@ def validate_image(uploaded_file) -> bool:
 def enhance_screen_captured_image(img):
     """
     Enhance images captured from computer screens with mobile cameras
+    Uses PIL for basic enhancement or OpenCV for advanced processing
     """
     try:
-        # Convert to numpy array for processing
-        img_array = np.array(img)
-        
-        # Remove moiré patterns using Gaussian blur
-        img_array = cv2.GaussianBlur(img_array, (3, 3), 0.5)
-        
-        # Convert to LAB color space for better processing
-        lab = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
-        l, a, b = cv2.split(lab)
-        
-        # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization) to L channel
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        l = clahe.apply(l)
-        
-        # Merge channels back
-        lab = cv2.merge([l, a, b])
-        enhanced = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
-        
-        # Reduce screen glare/reflection effects
-        # Apply gentle sharpening to counteract screen blur
-        kernel = np.array([[-0.5, -1, -0.5],
-                          [-1, 7, -1],
-                          [-0.5, -1, -0.5]])
-        enhanced = cv2.filter2D(enhanced, -1, kernel)
-        
-        # Ensure values are in valid range
-        enhanced = np.clip(enhanced, 0, 255).astype(np.uint8)
-        
-        # Convert back to PIL Image
-        return Image.fromarray(enhanced)
-        
+        if HAS_OPENCV:
+            # Advanced OpenCV-based enhancement
+            return enhance_with_opencv(img)
+        else:
+            # Basic PIL-based enhancement
+            return enhance_with_pil(img)
     except Exception as e:
         logger.warning(f"Screen enhancement failed: {e}, using original image")
         return img
 
+def enhance_with_opencv(img):
+    """
+    Advanced enhancement using OpenCV
+    """
+    # Convert to numpy array for processing
+    img_array = np.array(img)
+    
+    # Remove moiré patterns using Gaussian blur
+    img_array = cv2.GaussianBlur(img_array, (3, 3), 0.5)
+    
+    # Convert to LAB color space for better processing
+    lab = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
+    l, a, b = cv2.split(lab)
+    
+    # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization) to L channel
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    l = clahe.apply(l)
+    
+    # Merge channels back
+    lab = cv2.merge([l, a, b])
+    enhanced = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
+    
+    # Reduce screen glare/reflection effects
+    # Apply gentle sharpening to counteract screen blur
+    kernel = np.array([[-0.5, -1, -0.5],
+                      [-1, 7, -1],
+                      [-0.5, -1, -0.5]])
+    enhanced = cv2.filter2D(enhanced, -1, kernel)
+    
+    # Ensure values are in valid range
+    enhanced = np.clip(enhanced, 0, 255).astype(np.uint8)
+    
+    # Convert back to PIL Image
+    return Image.fromarray(enhanced)
+
+def enhance_with_pil(img):
+    """
+    Basic enhancement using PIL only
+    """
+    # Apply gentle blur to reduce moiré patterns
+    img = img.filter(ImageFilter.GaussianBlur(radius=0.5))
+    
+    # Enhance contrast
+    enhancer = ImageEnhance.Contrast(img)
+    img = enhancer.enhance(1.2)
+    
+    # Enhance sharpness slightly
+    enhancer = ImageEnhance.Sharpness(img)
+    img = enhancer.enhance(1.1)
+    
+    # Adjust brightness if needed
+    enhancer = ImageEnhance.Brightness(img)
+    img = enhancer.enhance(1.05)
+    
+    return img
+
 def detect_screen_capture(img):
     """
     Detect if image was likely captured from a screen
+    Uses basic PIL operations if OpenCV not available
     """
     try:
-        img_array = np.array(img)
-        
-        # Check for common screen capture characteristics
-        
-        # 1. Check brightness uniformity (screens often have more uniform lighting)
-        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-        brightness_std = np.std(gray) / 255.0
-        
-        # 2. Check for rectangular edges (screen borders)
-        edges = cv2.Canny(gray, 50, 150)
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        large_rectangles = 0
-        for contour in contours:
-            area = cv2.contourArea(contour)
-            if area > 1000:  # Large enough contour
-                # Check if contour is roughly rectangular
-                perimeter = cv2.arcLength(contour, True)
-                approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
-                if len(approx) >= 4:  # Roughly rectangular
-                    large_rectangles += 1
-        
-        # 3. Check color distribution (screens often have different color profiles)
-        color_variance = np.var(img_array, axis=(0, 1))
-        avg_color_variance = np.mean(color_variance)
-        
-        # Heuristic scoring
-        screen_score = 0
-        if brightness_std < 0.3:  # More uniform brightness
-            screen_score += 1
-        if large_rectangles > 0:  # Has rectangular shapes (screen border)
-            screen_score += 1
-        if avg_color_variance < 2000:  # Less color variation
-            screen_score += 1
-        
-        is_screen_capture = screen_score >= 2
-        
-        logger.info(f"Screen detection: brightness_std={brightness_std:.3f}, rectangles={large_rectangles}, "
-                   f"color_var={avg_color_variance:.1f}, score={screen_score}, is_screen={is_screen_capture}")
-        
-        return is_screen_capture
-        
+        if HAS_OPENCV:
+            return detect_screen_with_opencv(img)
+        else:
+            return detect_screen_with_pil(img)
     except Exception as e:
         logger.error(f"Screen detection failed: {e}")
         return False
+
+def detect_screen_with_opencv(img):
+    """
+    Advanced screen detection using OpenCV
+    """
+    img_array = np.array(img)
+    
+    # Check for common screen capture characteristics
+    # 1. Check brightness uniformity (screens often have more uniform lighting)
+    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+    brightness_std = np.std(gray) / 255.0
+    
+    # 2. Check for rectangular edges (screen borders)
+    edges = cv2.Canny(gray, 50, 150)
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    large_rectangles = 0
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if area > 1000:  # Large enough contour
+            # Check if contour is roughly rectangular
+            perimeter = cv2.arcLength(contour, True)
+            approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
+            if len(approx) >= 4:  # Roughly rectangular
+                large_rectangles += 1
+    
+    # 3. Check color distribution (screens often have different color profiles)
+    color_variance = np.var(img_array, axis=(0, 1))
+    avg_color_variance = np.mean(color_variance)
+    
+    # Heuristic scoring
+    screen_score = 0
+    if brightness_std < 0.3:  # More uniform brightness
+        screen_score += 1
+    if large_rectangles > 0:  # Has rectangular shapes (screen border)
+        screen_score += 1
+    if avg_color_variance < 2000:  # Less color variation
+        screen_score += 1
+    
+    is_screen_capture = screen_score >= 2
+    
+    logger.info(f"Screen detection (OpenCV): brightness_std={brightness_std:.3f}, rectangles={large_rectangles}, "
+               f"color_var={avg_color_variance:.1f}, score={screen_score}, is_screen={is_screen_capture}")
+    
+    return is_screen_capture
+
+def detect_screen_with_pil(img):
+    """
+    Basic screen detection using PIL only
+    """
+    img_array = np.array(img)
+    
+    # Simple brightness uniformity check
+    gray = np.mean(img_array, axis=2)
+    brightness_std = np.std(gray) / 255.0
+    
+    # Check color distribution
+    color_variance = np.var(img_array, axis=(0, 1))
+    avg_color_variance = np.mean(color_variance)
+    
+    # Simple heuristic
+    is_screen_capture = brightness_std < 0.25 and avg_color_variance < 1500
+    
+    logger.info(f"Screen detection (PIL): brightness_std={brightness_std:.3f}, "
+               f"color_var={avg_color_variance:.1f}, is_screen={is_screen_capture}")
+    
+    return is_screen_capture
 def is_blood_smear(img: Image.Image, filename: str = "unknown"):
     """
     Improved heuristic check for blood smear suitability.
@@ -361,7 +430,10 @@ def preprocess_image(uploaded_file):
         if is_screen_capture:
             logger.info("Screen capture detected - applying enhancement")
             img = enhance_screen_captured_image(img)
-            st.info("📺 Screen capture detected - image has been enhanced for better analysis")
+            if HAS_OPENCV:
+                st.info("📺 Screen capture detected - image enhanced with advanced processing")
+            else:
+                st.info("📺 Screen capture detected - image enhanced with basic processing (install opencv-python for better results)")
 
         # Log image properties for debugging
         logger.info(f"Image processed: Size={img.size}, Mode={img.mode}, Format={getattr(img, 'format', 'Unknown')}")
@@ -640,13 +712,20 @@ def main():
             - Ensure good lighting and steady hands
             - Allow browser camera permissions if prompted
             
-            **📺 Screen Capture Tips (NEW!):**
+            **📺 Screen Capture Tips:**
             - ✅ You can now photograph computer screens displaying blood smears!
             - Position camera straight to avoid distortion
             - Ensure screen brightness is adequate (not too dark/bright)
             - Minimize reflections and glare on screen
             - Hold camera steady to avoid blur
+            """)
             
+            if not HAS_OPENCV:
+                st.warning("⚠️ **Note**: For optimal screen capture processing, consider installing opencv-python. Basic enhancement is currently active.")
+            else:
+                st.success("✅ **Advanced screen capture processing available** - OpenCV detected")
+                
+            st.markdown("""
             **📁 Gallery Issues:**
             - Wait for image to fully load before selecting
             - Try refreshing the page if upload stalls
@@ -658,7 +737,10 @@ def main():
             - Use Chrome or Safari for best mobile compatibility
             """)
         
-        st.info("📺 **NEW FEATURE**: This tool now accepts images taken with mobile cameras from computer screens displaying blood smears!")
+        if HAS_OPENCV:
+            st.info("📺 **Screen Capture Support**: Advanced processing available - can photograph computer screens displaying blood smears!")
+        else:
+            st.info("📺 **Screen Capture Support**: Basic processing available - can photograph computer screens (install opencv-python for enhanced quality)")
         
         if uploaded:
             # Status indicator for upload success
