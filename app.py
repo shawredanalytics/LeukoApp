@@ -245,34 +245,7 @@ def main():
                 st.write(f"Device: {device}")
                 st.write(f"Demo Mode: {demo}")
         
-        # Sample images section
-        st.subheader("🔬 Sample Images")
-        st.markdown("Don't have an image? Try one of these samples:")
-        
-        # Create columns for sample images
-        col1, col2 = st.columns(2)
-        
-        # Sample paths - these would need to exist in a 'samples' folder
-        sample_normal = os.path.join(os.path.dirname(__file__), "samples", "normal_sample.jpg")
-        sample_leukemia = os.path.join(os.path.dirname(__file__), "samples", "leukemia_sample.jpg")
-        
-        # Check if sample images exist and display them
-        if os.path.exists(sample_normal):
-            with col1:
-                st.image(sample_normal, caption="Normal WBC Sample", use_column_width=True)
-                if st.button("Use Normal Sample"):
-                    # Logic to use this sample would go here
-                    st.info("Using normal sample image...")
-        else:
-            with col1:
-                st.info("Normal sample image not available")
-        
-        if os.path.exists(sample_leukemia):
-            with col2:
-                st.image(sample_leukemia, caption="Leukemia WBC Sample", use_column_width=True)
-                if st.button("Use Leukemia Sample"):
-                    # Logic to use this sample would go here
-                    st.info("Using leukemia sample image...")
+        # Sample images section completely removed as requested
 
     elif selected == "Model Info":
         st.header("🧠 Model Information")
