@@ -503,10 +503,6 @@ def main():
                 else:
                     confidence_category = "Low 🔴"
                 st.metric("Confidence", confidence_category)
-                confidence_color = "🟠"
-            else:
-                confidence_category = "Low"
-                confidence_color = "🔴"
             
             # Display confidence information
             conf_col1, conf_col2, conf_col3 = st.columns(3)
@@ -527,7 +523,14 @@ def main():
             
             with conf_col3:
                 st.markdown(f"**Confidence Level:**")
-                st.markdown(f"{confidence_color} **{confidence_category}**")
+                if confidence_level >= 90:
+                    st.markdown("🟢 **Very High**")
+                elif confidence_level >= 75:
+                    st.markdown("🟡 **High**")
+                elif confidence_level >= 60:
+                    st.markdown("🟠 **Moderate**")
+                else:
+                    st.markdown("🔴 **Low**")
             
             # Confidence interpretation
             st.markdown("**📋 Confidence Interpretation:**")
