@@ -507,6 +507,9 @@ def main():
             # Display confidence information
             conf_col1, conf_col2, conf_col3 = st.columns(3)
             
+            # Calculate prediction certainty (difference between probabilities)
+            prediction_certainty = abs(normal_prob - leukemia_prob)
+            
             with conf_col1:
                 st.metric(
                     label="Overall Confidence",
