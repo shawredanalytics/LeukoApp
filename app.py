@@ -10,6 +10,7 @@ import logging
 import sys
 import numpy as np
 import cv2  # OpenCV for texture analysis
+from collections import OrderedDict
 
 # ----------------- LOGGING SETUP -----------------
 logging.basicConfig(
@@ -28,6 +29,12 @@ IMAGE_SIZE = (224, 224)  # Set to (128,128) if your model was trained that way
 LABELS_MAP = {0: "Benign", 1: "Early_Pre_B", 2: "Pre_B", 3: "Pro_B"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOW_DEMO_MODE = False  # If True, runs demo mode if model weights missing
+
+# Configurable heuristics
+EDGE_VAR_THRESHOLD = 1500
+GREEN_RATIO_THRESHOLD = 0.35
+COLOR_RATIO_THRESHOLD = 0.25
+DEFAULT_TEMPERATURE = 2.0
 
 # ----------------- MODEL LOADING -----------------
 @st.cache_resource
@@ -65,7 +72,13 @@ def initialize_model(model_path: str = MODEL_PATH):
         state = torch.load(model_path, map_location=device)
         if isinstance(state, dict) and "state_dict" in state:
             state = state["state_dict"]
-        model.load_state_dict(state)
+
+        # Remove potential 'module.' prefixes
+        new_state = OrderedDict()
+        for k, v in state.items():
+            new_state[k.replace("module.", "")] = v
+
+        model.load_state_dict(new_state)
         model.eval()
         model.to(device)
         logger.info(f"Model loaded on {device}")
@@ -84,7 +97,8 @@ def validate_image(uploaded_file) -> bool:
             return False
 
         allowed_types = {"image/jpeg", "image/jpg", "image/png"}
-        if uploaded_file.type not in allowed_types:
+        if (uploaded_file.type not in allowed_types and
+            not uploaded_file.name.lower().endswith((".jpg", ".jpeg", ".png"))):
             st.error("🚨 Invalid type. Only JPG/JPEG/PNG allowed.")
             return False
         return True
@@ -116,15 +130,15 @@ def is_blood_smear(img: Image.Image, filename: str = "unknown"):
         edge_var = np.var(edges)
 
         # Checks with reasons
-        if (red_ratio + purple_ratio) <= 0.25:
+        if (red_ratio + purple_ratio) <= COLOR_RATIO_THRESHOLD:
             reason = "Image colors inconsistent with stained blood smears (insufficient red/purple tones)."
             logger.warning(f"[{filename}] Blood smear check failed: {reason}")
             return False, reason
-        if green_ratio >= 0.35:
+        if green_ratio >= GREEN_RATIO_THRESHOLD:
             reason = "Image background too green; not typical for blood smear slides."
             logger.warning(f"[{filename}] Blood smear check failed: {reason}")
             return False, reason
-        if edge_var <= 1500:
+        if edge_var <= EDGE_VAR_THRESHOLD:
             reason = "Image lacks sufficient cellular texture (too smooth for blood smear)."
             logger.warning(f"[{filename}] Blood smear check failed: {reason}")
             return False, reason
@@ -168,10 +182,10 @@ def preprocess_image(uploaded_file):
         return None
 
 # ----------------- PREDICTION -----------------
-def make_prediction(model, device, img_tensor, temperature: float = 2.0):
+def make_prediction(model, device, img_tensor, temperature: float = DEFAULT_TEMPERATURE):
     """
     Make prediction with calibrated probabilities using temperature scaling.
-    Hard-coded temperature = 2.0 to rationalize confidence.
+    Default temperature rationalizes confidence.
     """
     try:
         img_tensor = img_tensor.to(device)
@@ -241,6 +255,9 @@ def main():
             default_index=0,
         )
 
+        # Allow user to tweak temperature scaling if needed
+        temp_value = st.slider("Temperature Scaling", 0.5, 5.0, DEFAULT_TEMPERATURE, 0.1)
+
     model, device, demo = initialize_model()
     if model is None:
         st.stop()
@@ -257,7 +274,7 @@ def main():
                 st.stop()
 
             with st.spinner("Making prediction..."):
-                pred, conf, probs = make_prediction(model, device, tensor)
+                pred, conf, probs = make_prediction(model, device, tensor, temperature=temp_value)
             if pred is not None:
                 display_results(pred, conf, probs)
 
