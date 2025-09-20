@@ -193,6 +193,133 @@ def main():
         layout="wide"
     )
     
+    # Add CSS for ultra-compact A4 printing and reduced font sizes
+    st.markdown("""
+    <style>
+    /* Ultra-compact font sizes for A4 portrait printing */
+    .main .block-container {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        max-width: 100%;
+    }
+    
+    /* Aggressive text size reduction */
+    .stMarkdown, .stText, p, div, span {
+        font-size: 10px !important;
+        line-height: 1.1 !important;
+    }
+    
+    /* Ultra-compact header sizes */
+    h1 {
+        font-size: 16px !important;
+        margin-bottom: 0.2rem !important;
+        margin-top: 0.2rem !important;
+    }
+    
+    h2 {
+        font-size: 14px !important;
+        margin-bottom: 0.1rem !important;
+        margin-top: 0.1rem !important;
+    }
+    
+    h3 {
+        font-size: 12px !important;
+        margin-bottom: 0.1rem !important;
+        margin-top: 0.1rem !important;
+    }
+    
+    /* Reduce metric sizes */
+    .metric-container {
+        font-size: 9px !important;
+    }
+    
+    /* Reduce button and widget sizes */
+    .stButton button {
+        font-size: 9px !important;
+        padding: 0.1rem 0.3rem !important;
+    }
+    
+    /* Reduce expander sizes */
+    .streamlit-expanderHeader {
+        font-size: 10px !important;
+    }
+    
+    /* Minimal spacing between elements */
+    .element-container {
+        margin-bottom: 0.1rem !important;
+    }
+    
+    /* Ultra-compact columns */
+    .stColumn {
+        padding: 0.05rem !important;
+    }
+    
+    /* Print-specific ultra-compact styles for A4 portrait */
+    @media print {
+        .main .block-container {
+            padding: 0.2rem !important;
+            max-width: 210mm !important;
+            margin: 0 !important;
+        }
+        
+        .stMarkdown, .stText, p, div, span {
+            font-size: 8px !important;
+            line-height: 1.0 !important;
+            margin: 0.05rem 0 !important;
+        }
+        
+        h1 { font-size: 12px !important; line-height: 1.0 !important; margin: 0.1rem 0 !important; }
+        h2 { font-size: 10px !important; line-height: 1.0 !important; margin: 0.05rem 0 !important; }
+        h3 { font-size: 9px !important; line-height: 1.0 !important; margin: 0.05rem 0 !important; }
+        
+        .stButton, .stSelectbox, .stFileUploader {
+            display: none !important;
+        }
+        
+        .stSlider, .stTextInput, .stNumberInput {
+            display: none !important;
+        }
+        
+        .stCheckbox, .stRadio, .stMultiSelect {
+            display: none !important;
+        }
+        
+        .stDateInput, .stTimeInput, .stColorPicker {
+            display: none !important;
+        }
+        
+        .stDataFrame, .stTable {
+            font-size: 6px !important;
+        }
+        
+        .stImage {
+            max-width: 100px !important;
+            max-height: 100px !important;
+        }
+        
+        .stSuccess, .stError, .stWarning, .stInfo {
+            font-size: 8px !important;
+            padding: 0.1rem !important;
+            margin: 0.05rem 0 !important;
+        }
+        
+        .stMetric {
+            font-size: 8px !important;
+            margin-bottom: 0.05rem !important;
+        }
+        
+        /* Force page breaks to avoid splitting content */
+        .prediction-section {
+            page-break-inside: avoid !important;
+        }
+        
+        /* Ensure everything fits in A4 portrait */
+        body { margin: 0 !important; padding: 0 !important; }
+        @page { size: A4 portrait; margin: 8mm; }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Show OpenCV status after Streamlit is initialized
     if not HAS_OPENCV:
         st.sidebar.info("ℹ️ Basic image processing active. Install opencv-python for enhanced screen capture support.")
@@ -201,15 +328,11 @@ def main():
     st.markdown("*AI-powered blood smear analysis for educational purposes*")
     
     # Developer Credits with dx.anx platform information + UPDATED CONTACT
-    st.markdown("---")
     st.markdown("**🏢 Developed by [Shawred Analytics](https://www.shawredanalytics.com) | 📧 shawred.analytics@gmail.com | Part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)**")
     st.markdown("*With contributions from: Pavan Kumar Didde, Shaik Zuber, Ritabrata Dey, Patrika Chatterjee, Titli Paul, Sumit Mitra*")
     
     st.error("🚨 **IMPORTANT LIMITATION NOTICE**")
-    st.markdown("""
-    **This tool ONLY detects White Blood Cell (WBC) abnormalities related to leukemia.**
-    """)
-    st.markdown("---")
+    st.markdown("**This tool ONLY detects White Blood Cell (WBC) abnormalities related to leukemia.**")
 
     with st.sidebar:
         selected = option_menu(
@@ -233,7 +356,7 @@ def main():
         st.stop()
 
     if selected == "Prediction":
-        st.subheader("📤 Upload Blood Smear Image")
+        st.markdown("### 📤 Upload Blood Smear Image")
         
         # File uploader
         uploaded_file = st.file_uploader("Choose a blood smear image...", type=["jpg", "jpeg", "png"])
@@ -247,14 +370,14 @@ def main():
             img_col1, img_col2 = st.columns([1, 2])
             
             with img_col1:
-                st.image(image, caption="Uploaded Image", width=200)
+                st.image(image, caption="Uploaded Image", width=150)
             
             with img_col2:
-                # Show basic image info
+                # Show basic image info in compact format
                 img_width, img_height = image.size
-                st.markdown(f"**📏 Image Dimensions:** {img_width} × {img_height} pixels")
-                st.markdown(f"**📁 File Name:** {uploaded_file.name}")
-                st.markdown(f"**💾 File Size:** {len(uploaded_file.getvalue()) / 1024:.1f} KB")
+                st.markdown(f"**📏 Dimensions:** {img_width}×{img_height}px")
+                st.markdown(f"**📁 File:** {uploaded_file.name}")
+                st.markdown(f"**💾 Size:** {len(uploaded_file.getvalue()) / 1024:.1f}KB")
             
             # Check if the image is likely a blood smear
             is_valid_image = validate_blood_smear_image(image)
@@ -446,52 +569,52 @@ def main():
                 probabilities = torch.nn.functional.softmax(output[0], dim=0)
             
             # Display results
-            st.subheader("📊 Prediction Results")
+            st.markdown("### 📊 Prediction Results")
             
             # Show warning/success message first based on prediction
             leukemia_prob = probabilities[1].item() * 100
             if leukemia_prob > 50:
-                st.markdown('<p style="color: red; font-weight: bold; font-size: 18px;">🚩 Potential leukemia indicators detected. Please consult with a healthcare professional.</p>', unsafe_allow_html=True)
+                st.markdown('<p style="color: red; font-weight: bold; font-size: 14px;">🚩 Potential leukemia indicators detected. Please consult with a healthcare professional.</p>', unsafe_allow_html=True)
                 
-                # Show specific leukemia indicators observed in compact format
-                st.markdown("**🔬 Leukemia Indicators Observed:**")
+                # Show specific leukemia indicators observed in ultra-compact format
+                st.markdown("**🔬 Leukemia Indicators:**")
                 
-                # Create compact indicator columns
+                # Create ultra-compact indicator columns
                 ind_col1, ind_col2, ind_col3 = st.columns(3)
                 
                 with ind_col1:
-                    st.markdown("**🩸 Cellular Abnormalities:**")
+                    st.markdown("**🩸 Cellular:**")
                     if leukemia_prob > 85:
-                        st.markdown("• High blast cell count (>20%)<br>• Abnormal nuclear morphology<br>• Immature cell population<br>• Pathognomonic features", unsafe_allow_html=True)
+                        st.markdown("• High blast count (>20%)<br>• Nuclear abnormalities<br>• Immature cells", unsafe_allow_html=True)
                     elif leukemia_prob > 70:
-                        st.markdown("• Elevated blast cells<br>• Nuclear irregularities<br>• Cellular dysplasia<br>• Left shift pattern", unsafe_allow_html=True)
+                        st.markdown("• Elevated blasts<br>• Nuclear irregularities<br>• Cellular dysplasia", unsafe_allow_html=True)
                     else:
-                        st.markdown("• Suspicious cellular features<br>• Atypical lymphocytes<br>• Mild nuclear abnormalities", unsafe_allow_html=True)
+                        st.markdown("• Suspicious features<br>• Atypical lymphocytes", unsafe_allow_html=True)
                 
                 with ind_col2:
-                    st.markdown("**📊 Morphological Patterns:**")
+                    st.markdown("**📊 Patterns:**")
                     if leukemia_prob > 85:
-                        st.markdown("• Acute leukemia pattern<br>• Blast crisis morphology<br>• Monoclonal population<br>• Loss of maturation", unsafe_allow_html=True)
+                        st.markdown("• Acute pattern<br>• Blast crisis<br>• Monoclonal", unsafe_allow_html=True)
                     elif leukemia_prob > 70:
-                        st.markdown("• Chronic leukemia pattern<br>• Mixed cell population<br>• Increased WBC count<br>• Abnormal distribution", unsafe_allow_html=True)
+                        st.markdown("• Chronic pattern<br>• Mixed population<br>• Increased WBC", unsafe_allow_html=True)
                     else:
-                        st.markdown("• Early changes detected<br>• Reactive vs. neoplastic<br>• Borderline findings", unsafe_allow_html=True)
+                        st.markdown("• Early changes<br>• Borderline findings", unsafe_allow_html=True)
                 
                 with ind_col3:
-                    st.markdown("**🎯 Likely Cell Types:**")
+                    st.markdown("**🎯 Cell Types:**")
                     if leukemia_prob > 75:
-                        st.markdown("• Lymphoblasts (ALL)<br>• Myeloblasts (AML)<br>• Undifferentiated blasts", unsafe_allow_html=True)
+                        st.markdown("• Lymphoblasts (ALL)<br>• Myeloblasts (AML)", unsafe_allow_html=True)
                     elif leukemia_prob > 60:
-                        st.markdown("• Atypical lymphocytes<br>• Abnormal granulocytes<br>• Smudge cells (CLL)", unsafe_allow_html=True)
+                        st.markdown("• Atypical lymphocytes<br>• Abnormal granulocytes", unsafe_allow_html=True)
                     else:
-                        st.markdown("• Nuclear abnormalities<br>• Cytoplasmic changes<br>• Size variations", unsafe_allow_html=True)
+                        st.markdown("• Nuclear abnormalities<br>• Size variations", unsafe_allow_html=True)
             else:
                 st.success("✅ No significant leukemia indicators detected.")
                 normal_col1, normal_col2 = st.columns(2)
                 with normal_col1:
-                    st.markdown("**✅ Normal Features:** Mature WBCs, normal nuclear morphology, appropriate cell sizes", unsafe_allow_html=True)
+                    st.markdown("**✅ Normal:** Mature WBCs, normal morphology", unsafe_allow_html=True)
                 with normal_col2:
-                    st.markdown("**✅ Healthy Parameters:** <5% blast cells, normal maturation, no disease markers", unsafe_allow_html=True)
+                    st.markdown("**✅ Healthy:** <5% blasts, normal maturation", unsafe_allow_html=True)
             
             # Create columns for the results (more compact)
             col1, col2, col3 = st.columns(3)
