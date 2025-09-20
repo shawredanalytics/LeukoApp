@@ -194,130 +194,130 @@ def main():
     )
     
     # Add CSS for improved readability while maintaining A4 compatibility
-     st.markdown("""
-     <style>
-     /* Improved font sizes for better readability */
-     .main .block-container {
-         padding-top: 0.5rem;
-         padding-bottom: 0.5rem;
-         max-width: 100%;
-     }
-     
-     /* Enhanced text size for readability */
-     .stMarkdown, .stText, p, div, span {
-         font-size: 18px !important;
-         line-height: 1.5 !important;
-     }
-     
-     /* Readable header sizes */
-     h1 {
-         font-size: 28px !important;
-         margin-bottom: 0.5rem !important;
-         margin-top: 0.5rem !important;
-     }
-     
-     h2 {
-         font-size: 24px !important;
-         margin-bottom: 0.4rem !important;
-         margin-top: 0.4rem !important;
-     }
-     
-     h3 {
-         font-size: 20px !important;
-         margin-bottom: 0.3rem !important;
-         margin-top: 0.3rem !important;
-     }
-     
-     /* Readable metric sizes */
-     .metric-container {
-         font-size: 16px !important;
-     }
-     
-     /* Readable button and widget sizes */
-     .stButton button {
-         font-size: 16px !important;
-         padding: 0.4rem 0.8rem !important;
-     }
-     
-     /* Readable expander sizes */
-     .streamlit-expanderHeader {
-         font-size: 16px !important;
-     }
-     
-     /* Balanced spacing between elements */
-     .element-container {
-         margin-bottom: 0.3rem !important;
-     }
-     
-     /* Comfortable columns */
-     .stColumn {
-         padding: 0.2rem !important;
-     }
-     
-     /* Print-specific styles optimized for A4 with balanced readability */
-      @media print {
-          .main .block-container {
-              padding: 0.4rem !important;
-              max-width: 210mm !important;
-              margin: 0 !important;
-          }
-          
-          .stMarkdown, .stText, p, div, span {
-              font-size: 11px !important;
-              line-height: 1.3 !important;
-              margin: 0.15rem 0 !important;
-          }
-          
-          h1 { font-size: 18px !important; line-height: 1.3 !important; margin: 0.3rem 0 !important; }
-          h2 { font-size: 16px !important; line-height: 1.3 !important; margin: 0.25rem 0 !important; }
-          h3 { font-size: 14px !important; line-height: 1.3 !important; margin: 0.2rem 0 !important; }
-          
-          .stButton, .stSelectbox, .stFileUploader {
-              display: none !important;
-          }
-          
-          .stSlider, .stTextInput, .stNumberInput {
-              display: none !important;
-          }
-          
-          .stCheckbox, .stRadio, .stMultiSelect {
-              display: none !important;
-          }
-          
-          .stDateInput, .stTimeInput, .stColorPicker {
-              display: none !important;
-          }
-          
-          .stDataFrame, .stTable {
-              font-size: 9px !important;
-          }
-          
-          .stImage {
-              max-width: 140px !important;
-              max-height: 140px !important;
-          }
-          
-          .stSuccess, .stError, .stWarning, .stInfo {
-              font-size: 11px !important;
-              padding: 0.25rem !important;
-              margin: 0.15rem 0 !important;
-          }
-          
-          .stMetric {
-              font-size: 11px !important;
-              margin-bottom: 0.15rem !important;
-          }
-          
-          /* Force page breaks to avoid splitting content */
-          .prediction-section {
-              page-break-inside: avoid !important;
-          }
-          
-          /* Ensure everything fits in A4 portrait with better margins */
-          body { margin: 0 !important; padding: 0 !important; }
-          @page { size: A4 portrait; margin: 12mm; }
-      }
-     </style>
+    st.markdown("""
+    <style>
+    /* Improved font sizes for better readability */
+    .main .block-container {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        max-width: 100%;
+    }
+    
+    /* Enhanced text size for readability */
+    .stMarkdown, .stText, p, div, span {
+        font-size: 18px !important;
+        line-height: 1.5 !important;
+    }
+    
+    /* Readable header sizes */
+    h1 {
+        font-size: 28px !important;
+        margin-bottom: 0.5rem !important;
+        margin-top: 0.5rem !important;
+    }
+    
+    h2 {
+        font-size: 24px !important;
+        margin-bottom: 0.4rem !important;
+        margin-top: 0.4rem !important;
+    }
+    
+    h3 {
+        font-size: 20px !important;
+        margin-bottom: 0.3rem !important;
+        margin-top: 0.3rem !important;
+    }
+    
+    /* Readable metric sizes */
+    .metric-container {
+        font-size: 16px !important;
+    }
+    
+    /* Readable button and widget sizes */
+    .stButton button {
+        font-size: 16px !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    
+    /* Readable expander sizes */
+    .streamlit-expanderHeader {
+        font-size: 16px !important;
+    }
+    
+    /* Balanced spacing between elements */
+    .element-container {
+        margin-bottom: 0.3rem !important;
+    }
+    
+    /* Comfortable columns */
+    .stColumn {
+        padding: 0.2rem !important;
+    }
+    
+    /* Print-specific styles optimized for A4 with balanced readability */
+    @media print {
+        .main .block-container {
+            padding: 0.4rem !important;
+            max-width: 210mm !important;
+            margin: 0 !important;
+        }
+        
+        .stMarkdown, .stText, p, div, span {
+            font-size: 11px !important;
+            line-height: 1.3 !important;
+            margin: 0.15rem 0 !important;
+        }
+        
+        h1 { font-size: 18px !important; line-height: 1.3 !important; margin: 0.3rem 0 !important; }
+        h2 { font-size: 16px !important; line-height: 1.3 !important; margin: 0.25rem 0 !important; }
+        h3 { font-size: 14px !important; line-height: 1.3 !important; margin: 0.2rem 0 !important; }
+        
+        .stButton, .stSelectbox, .stFileUploader {
+            display: none !important;
+        }
+        
+        .stSlider, .stTextInput, .stNumberInput {
+            display: none !important;
+        }
+        
+        .stCheckbox, .stRadio, .stMultiSelect {
+            display: none !important;
+        }
+        
+        .stDateInput, .stTimeInput, .stColorPicker {
+            display: none !important;
+        }
+        
+        .stDataFrame, .stTable {
+            font-size: 9px !important;
+        }
+        
+        .stImage {
+            max-width: 140px !important;
+            max-height: 140px !important;
+        }
+        
+        .stSuccess, .stError, .stWarning, .stInfo {
+            font-size: 11px !important;
+            padding: 0.25rem !important;
+            margin: 0.15rem 0 !important;
+        }
+        
+        .stMetric {
+            font-size: 11px !important;
+            margin-bottom: 0.15rem !important;
+        }
+        
+        /* Force page breaks to avoid splitting content */
+        .prediction-section {
+            page-break-inside: avoid !important;
+        }
+        
+        /* Ensure everything fits in A4 portrait with better margins */
+        body { margin: 0 !important; padding: 0 !important; }
+        @page { size: A4 portrait; margin: 12mm; }
+    }
+    </style>
     """, unsafe_allow_html=True)
     
     # Show OpenCV status after Streamlit is initialized
