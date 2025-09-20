@@ -88,7 +88,6 @@ def initialize_model():
             model.load_state_dict(torch.load(model_path, map_location=device))
             demo = False
         else:
-            st.warning("⚠️ Model weights not found. Running in DEMO mode with random predictions.")
             demo = True
             
         model.to(device)
@@ -156,7 +155,7 @@ def main():
         if uploaded_file is not None:
             # Display the uploaded image
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_column_width=True)
+            st.image(image, caption="Uploaded Image", use_container_width=True)
             
             # Check if the image is likely a blood smear
             is_valid_image = validate_blood_smear_image(image)
@@ -309,6 +308,28 @@ def main():
                 st.write(f"Temperature Scaling: {temp_value}")
                 st.write(f"Device: {device}")
                 st.write(f"Demo Mode: {demo}")
+            
+            # Disclaimers section at the end of prediction page
+            st.markdown("---")
+            st.subheader("⚠️ Important Disclaimers")
+            
+            disclaimer_col1, disclaimer_col2 = st.columns(2)
+            
+            with disclaimer_col1:
+                st.markdown("**🔬 Model Status:**")
+                if demo:
+                    st.info("• Running in DEMO mode with random predictions")
+                    st.info("• Model weights not found - using simulated results")
+                else:
+                    st.success("• Enhanced model loaded and active")
+                    st.success("• Using trained weights for predictions")
+            
+            with disclaimer_col2:
+                st.markdown("**⚕️ Medical Disclaimer:**")
+                st.warning("• This tool is for research and educational purposes only")
+                st.warning("• Not intended for clinical diagnosis or treatment")
+                st.warning("• Always consult healthcare professionals for medical advice")
+                st.warning("• Results should not replace professional medical evaluation")
         
         # Sample images section completely removed as requested
 
