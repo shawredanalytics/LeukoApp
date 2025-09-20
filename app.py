@@ -26,59 +26,28 @@ def validate_blood_smear_image(image):
     Validates if the uploaded image is likely a blood smear image.
     Returns True if it's likely a blood smear, False otherwise.
     
-    This function uses very permissive heuristics to:
-    1. Only reject extremely obvious non-medical images
-    2. Accept most blood smear images with various staining techniques and conditions
+    This function uses extremely permissive heuristics to:
+    1. Accept virtually all images except completely invalid ones
+    2. Only reject images that are clearly corrupted or unusable
     """
     # Convert to numpy array
     img_array = np.array(image)
     
-    # 1. Basic dimension check - only reject extremely small images
-    if image.width < 20 or image.height < 20:
+    # 1. Very basic dimension check - only reject tiny images
+    if image.width < 10 or image.height < 10:
         return False
     
-    # 2. Convert to smaller size for faster processing
-    small_img = image.resize((100, 100))
-    img_array_small = np.array(small_img)
-    
-    # 3. Very permissive color analysis - only reject extremely obvious non-medical images
-    if len(img_array_small.shape) == 3 and img_array_small.shape[2] == 3:
-        # Calculate average color
-        avg_color = np.mean(img_array_small, axis=(0, 1))
-        r, g, b = avg_color
+    # 2. Check if image is completely black or white (corrupted)
+    if len(img_array.shape) >= 2:
+        # Check for completely black image
+        if np.max(img_array) < 5:
+            return False
         
-        # Only reject images with extremely unnatural colors for medical images
-        # Very bright neon-like colors that are impossible in microscopy
-        if max(r, g, b) > 240 and min(r, g, b) < 50:
-            # Check for extremely saturated single colors (like pure red, green, or blue)
-            if (r > 240 and g < 50 and b < 50) or \
-               (g > 240 and r < 50 and b < 50) or \
-               (b > 240 and r < 50 and g < 50):
-                return False
+        # Check for completely white image
+        if np.min(img_array) > 250:
+            return False
     
-    # 4. Very permissive texture analysis - only reject extremely complex images
-    # Convert to grayscale
-    if len(img_array_small.shape) == 3:
-        gray = np.mean(img_array_small, axis=2).astype(np.uint8)
-    else:
-        gray = img_array_small
-    
-    # Calculate edge density with very high threshold
-    grad_x = np.abs(np.diff(gray, axis=1))
-    grad_y = np.abs(np.diff(gray, axis=0))
-    
-    # Count very strong edges only
-    strong_edges_x = np.sum(grad_x > 80)  # Much higher threshold
-    strong_edges_y = np.sum(grad_y > 80)  # Much higher threshold
-    total_pixels = gray.size
-    
-    edge_density = (strong_edges_x + strong_edges_y) / total_pixels
-    
-    # Only reject if edge density is extremely high (like detailed photographs)
-    if edge_density > 0.3:  # Much higher threshold
-        return False
-    
-    # Accept most images as potential medical images
+    # Accept virtually all other images
     return True
 
 # Function to initialize the model
@@ -206,77 +175,62 @@ def main():
                     st.markdown("### 🚫 **Possible Rejection Reasons:**")
                     
                     # Check dimension issues
-                    if img_width < 20 or img_height < 20:
-                        st.error(f"❌ **Image too small**: {img_width}x{img_height} pixels (minimum: 20x20)")
+                    if img_width < 10 or img_height < 10:
+                        st.error(f"❌ **Image too small**: {img_width}x{img_height} pixels (minimum: 10x10)")
                     else:
                         st.success(f"✅ **Size acceptable**: {img_width}x{img_height} pixels")
                     
-                    # Check for obvious non-medical characteristics
+                    # Check for corrupted images
                     img_array = np.array(image)
-                    if len(img_array.shape) == 3 and img_array.shape[2] == 3:
-                        avg_color = np.mean(img_array, axis=(0, 1))
-                        r, g, b = avg_color
+                    if len(img_array.shape) >= 2:
+                        max_val = np.max(img_array)
+                        min_val = np.min(img_array)
                         
-                        # Check for neon colors
-                        if max(r, g, b) > 240 and min(r, g, b) < 50:
-                            if (r > 240 and g < 50 and b < 50) or \
-                               (g > 240 and r < 50 and b < 50) or \
-                               (b > 240 and r < 50 and g < 50):
-                                st.error("❌ **Unnatural colors detected** (pure neon colors)")
-                            else:
-                                st.info("⚠️ **High contrast colors detected**")
+                        if max_val < 5:
+                            st.error("❌ **Completely black image** (possibly corrupted)")
+                        elif min_val > 250:
+                            st.error("❌ **Completely white image** (possibly corrupted)")
                         else:
-                            st.success("✅ **Color profile acceptable**")
-                    
-                    # Check texture complexity
-                    small_img = image.resize((100, 100))
-                    img_array_small = np.array(small_img)
-                    if len(img_array_small.shape) == 3:
-                        gray = np.mean(img_array_small, axis=2).astype(np.uint8)
+                            st.success("✅ **Image data looks valid**")
                     else:
-                        gray = img_array_small
-                    
-                    grad_x = np.abs(np.diff(gray, axis=1))
-                    grad_y = np.abs(np.diff(gray, axis=0))
-                    strong_edges_x = np.sum(grad_x > 80)
-                    strong_edges_y = np.sum(grad_y > 80)
-                    edge_density = (strong_edges_x + strong_edges_y) / gray.size
-                    
-                    if edge_density > 0.3:
-                        st.error(f"❌ **Too complex/detailed** (edge density: {edge_density:.3f})")
-                    else:
-                        st.success(f"✅ **Texture complexity acceptable** (edge density: {edge_density:.3f})")
+                        st.success("✅ **Image format acceptable**")
                 
                 with col2:
                     st.markdown("### ✅ **Acceptable Image Specifications:**")
                     st.markdown("""
                     **📏 Dimensions:**
-                    - Minimum: 20x20 pixels
-                    - Recommended: ≥200x200 pixels
+                    - Minimum: 10x10 pixels (extremely permissive)
+                    - Recommended: ≥100x100 pixels
                     - Maximum: No limit
                     
                     **🎨 Color Requirements:**
-                    - Medical/microscopy colors
-                    - Various staining techniques accepted:
-                      - Wright's stain (purple/pink)
-                      - Giemsa stain (blue/purple)
-                      - May-Grünwald stain
-                    - Avoid pure neon colors
+                    - Any color profile accepted
+                    - All image types welcome:
+                      - Medical/microscopy images
+                      - Regular photographs
+                      - Scanned documents
+                      - Digital artwork
+                    - No color restrictions
                     
                     **🔬 Image Characteristics:**
-                    - Blood cells on light background
-                    - Microscopic cellular structures
-                    - Various magnifications accepted
-                    - Different lighting conditions OK
+                    - Any image content accepted
+                    - All magnifications and qualities
+                    - Any lighting conditions
+                    - Any background types
                     
                     **📁 File Formats:**
                     - JPG/JPEG
                     - PNG
-                    - File size: No specific limit
+                    - File size: No limit
+                    
+                    **⚠️ Only Rejected:**
+                    - Images smaller than 10x10 pixels
+                    - Completely black images (corrupted)
+                    - Completely white images (corrupted)
                     """)
                 
                 st.markdown("---")
-                st.info("💡 **Tip**: Ensure your image shows blood cells under microscopic view with typical medical staining. The system is designed to accept most legitimate blood smear images while filtering out obvious non-medical content.")
+                st.info("💡 **Tip**: The system now accepts virtually any image format and type. Only extremely small (less than 10x10 pixels) or completely corrupted images will be rejected. You can upload medical images, photographs, scanned documents, or any other image type for analysis.")
                 
                 # Exit the prediction flow for invalid images
                 return
@@ -285,11 +239,11 @@ def main():
             
             # Check for low-resolution images and show disclaimer
             image_width, image_height = image.size
-            is_low_resolution = image_width < 200 or image_height < 200
+            is_low_resolution = image_width < 100 or image_height < 100
             
             if is_low_resolution:
                 st.warning("📏 **Low Resolution Image Detected**")
-                st.info(f"Image resolution: {image_width}x{image_height} pixels. For optimal accuracy, higher resolution images (≥200x200) are recommended. Results may be less reliable with low-resolution images.")
+                st.info(f"Image resolution: {image_width}x{image_height} pixels. For optimal accuracy, higher resolution images (≥100x100) are recommended. Results may be less reliable with very low-resolution images.")
             
             # Preprocess the image
             preprocess = transforms.Compose([
