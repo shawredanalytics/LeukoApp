@@ -170,21 +170,35 @@ def main():
         if uploaded_file is not None:
             # Display the uploaded image
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Blood Smear Image", use_column_width=True)
+            st.image(image, caption="Uploaded Image", use_column_width=True)
             
             # Check if the image is likely a blood smear
             is_valid_image = validate_blood_smear_image(image)
             
             if not is_valid_image:
-                st.error("⚠️ **This doesn't appear to be a blood smear image.** Please upload an image of a blood smear for accurate analysis.")
-                st.warning("The application is designed specifically for blood smear images and may give incorrect results for other image types.")
+                st.error("⚠️ **This doesn't appear to be a blood smear image.** Please upload an image of a blood smear for analysis.")
+                st.warning("The application is designed specifically for blood smear images and cannot provide predictions for other image types.")
                 
                 # Show example of what a blood smear should look like
                 st.info("Blood smear images typically show individual cells with clear cellular structures on a light background.")
                 
-                # Still allow processing but with warning
+                # Show sample images section to help the user
                 st.markdown("---")
-                st.warning("**Proceeding with analysis, but results may be inaccurate.**")
+                st.subheader("Please try using one of our sample images instead:")
+                if os.path.exists("samples"):
+                    sample_files = [f for f in os.listdir("samples") if f.endswith(('.png', '.jpg', '.jpeg'))]
+                    if sample_files:
+                        selected_sample = st.selectbox("Select a sample blood smear image:", sample_files)
+                        if st.button("Use this sample"):
+                            st.session_state['selected_sample'] = selected_sample
+                            st.experimental_rerun()
+                else:
+                    st.write("Sample images not found. Please upload a valid blood smear image.")
+                
+                # Exit the prediction flow for invalid images
+                return
+            
+            # Only proceed with valid blood smear images
             
             # Preprocess the image
             preprocess = transforms.Compose([
@@ -200,10 +214,9 @@ def main():
             
             # Make prediction
             with torch.no_grad():
-                if demo or not is_valid_image:
-                    # Generate random prediction for demo mode or invalid images
-                    # For invalid images, bias toward normal to avoid false positives
-                    output = torch.tensor([[0.7, 0.3]])
+                if demo:
+                    # Generate random prediction for demo mode
+                    output = torch.tensor([[0.4, 0.6]])
                 else:
                     output = model(input_batch)
                     # Apply temperature scaling
