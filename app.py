@@ -592,6 +592,237 @@ def main():
                 st.write(f"Device: {device}")
                 st.write(f"Demo Mode: {demo}")
             
+            # Leukemia Cell Indicators Section
+            st.markdown("---")
+            st.subheader("🔬 Leukemia Cell Indicators - What the AI Detects")
+            
+            st.markdown("""
+            The AI model analyzes blood smear images to identify specific cellular abnormalities that may indicate leukemia. 
+            Below are the key cell types and features that serve as leukemia indicators:
+            """)
+            
+            # Create tabs for different leukemia types
+            tab1, tab2, tab3, tab4 = st.tabs(["🔴 Acute Leukemia Cells", "🟡 Chronic Leukemia Cells", "🔵 Pathognomonic Features", "🟢 Nuclear Abnormalities"])
+            
+            with tab1:
+                st.markdown("### **Acute Leukemia Cell Indicators**")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("#### **🩸 Lymphoblasts (ALL)**")
+                    st.markdown("""
+                    **Morphological Features:**
+                    - **Size**: Small to medium (10-18 μm)
+                    - **Nucleus**: Round, fine chromatin, prominent nucleoli
+                    - **Cytoplasm**: Scanty, basophilic, may contain vacuoles
+                    - **Nuclear-Cytoplasmic Ratio**: High (large nucleus, little cytoplasm)
+                    
+                    **Subtypes Detected:**
+                    - **L1**: Small, uniform blasts with regular nuclei
+                    - **L2**: Larger, heterogeneous blasts with irregular nuclei
+                    - **L3**: Large blasts with prominent vacuoles (Burkitt-like)
+                    
+                    **Clinical Significance:**
+                    - **>20% blasts** in blood/bone marrow indicates acute leukemia
+                    - Most common in children and young adults
+                    - Requires immediate medical attention
+                    """)
+                
+                with col2:
+                    st.markdown("#### **🩸 Myeloblasts (AML)**")
+                    st.markdown("""
+                    **Morphological Features:**
+                    - **Size**: Medium to large (15-25 μm)
+                    - **Nucleus**: Round to oval, fine chromatin, 2-4 nucleoli
+                    - **Cytoplasm**: Moderate amount, may contain granules
+                    - **Special Features**: May contain Auer rods (pathognomonic)
+                    
+                    **Subtypes Detected:**
+                    - **M0**: Minimally differentiated
+                    - **M1**: Without maturation
+                    - **M2**: With maturation
+                    - **M3**: Promyelocytic (APL) - contains Auer rods
+                    - **M4**: Myelomonocytic
+                    - **M5**: Monocytic
+                    - **M6**: Erythroleukemia
+                    - **M7**: Megakaryoblastic
+                    
+                    **Clinical Significance:**
+                    - **>20% blasts** indicates acute myeloid leukemia
+                    - More common in adults
+                    - Auer rods are diagnostic for AML
+                    """)
+            
+            with tab2:
+                st.markdown("### **Chronic Leukemia Cell Indicators**")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("#### **🩸 CLL Cells (Chronic Lymphocytic Leukemia)**")
+                    st.markdown("""
+                    **Morphological Features:**
+                    - **Size**: Small, similar to normal lymphocytes (7-10 μm)
+                    - **Nucleus**: Dense, clumped chromatin ("soccer ball" pattern)
+                    - **Cytoplasm**: Scanty, pale blue
+                    - **Shape**: Round, mature-appearing
+                    
+                    **Characteristic Features:**
+                    - **Smudge Cells**: Fragile cells that rupture during slide preparation
+                    - **Prolymphocytes**: <10% larger cells with prominent nucleoli
+                    - **Monoclonal Population**: Single clone of abnormal B-cells
+                    
+                    **Clinical Significance:**
+                    - **>5,000/μL** abnormal lymphocytes in blood
+                    - Most common leukemia in Western adults
+                    - Indolent course, may not require immediate treatment
+                    """)
+                
+                with col2:
+                    st.markdown("#### **🩸 CML Cells (Chronic Myeloid Leukemia)**")
+                    st.markdown("""
+                    **Morphological Features:**
+                    - **Spectrum**: All stages of granulocyte maturation present
+                    - **Blasts**: <5% in chronic phase, >20% in blast crisis
+                    - **Left Shift**: Increased immature granulocytes
+                    - **Basophilia**: Increased basophils (characteristic)
+                    
+                    **Cell Types Observed:**
+                    - **Myelocytes**: Immature granulocytes
+                    - **Metamyelocytes**: Intermediate maturation stage
+                    - **Promyelocytes**: Early granulocyte precursors
+                    - **Increased Eosinophils and Basophils**
+                    
+                    **Clinical Significance:**
+                    - **Philadelphia Chromosome**: t(9;22) translocation
+                    - **BCR-ABL** fusion gene (molecular marker)
+                    - Three phases: chronic, accelerated, blast crisis
+                    """)
+            
+            with tab3:
+                st.markdown("### **Pathognomonic Features (Diagnostic Markers)**")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("#### **🔴 Auer Rods**")
+                    st.markdown("""
+                    **Description:**
+                    - **Crystalline inclusions** in myeloblasts
+                    - **Rod-shaped or needle-like** structures
+                    - **Pink to red** on Wright-Giemsa stain
+                    - **Pathognomonic for AML** (diagnostic)
+                    
+                    **Clinical Significance:**
+                    - **100% specific** for acute myeloid leukemia
+                    - Most common in **M3 (APL)** subtype
+                    - Indicates myeloid lineage differentiation
+                    - Immediate diagnostic confirmation
+                    """)
+                    
+                    st.markdown("#### **🔴 Smudge Cells**")
+                    st.markdown("""
+                    **Description:**
+                    - **Ruptured lymphocytes** during slide preparation
+                    - **Nuclear material** without intact cell membrane
+                    - **Characteristic of CLL** cells
+                    - **Fragile cell membranes** due to abnormal proteins
+                    
+                    **Clinical Significance:**
+                    - **Highly suggestive** of chronic lymphocytic leukemia
+                    - Indicates **fragile cell structure**
+                    - Correlates with **disease progression**
+                    """)
+                
+                with col2:
+                    st.markdown("#### **🔴 Flower Cells**")
+                    st.markdown("""
+                    **Description:**
+                    - **Multilobed nuclei** resembling flower petals
+                    - **Characteristic of ATLL** (Adult T-cell Leukemia/Lymphoma)
+                    - **Convoluted nuclear contours**
+                    - **Mature T-cell morphology**
+                    
+                    **Clinical Significance:**
+                    - **Pathognomonic for ATLL**
+                    - Associated with **HTLV-1 infection**
+                    - Poor prognosis indicator
+                    """)
+                    
+                    st.markdown("#### **🔴 Hairy Cells**")
+                    st.markdown("""
+                    **Description:**
+                    - **Cytoplasmic projections** ("hairy" appearance)
+                    - **Medium-sized cells** with oval nuclei
+                    - **Abundant pale cytoplasm**
+                    - **Characteristic of Hairy Cell Leukemia**
+                    
+                    **Clinical Significance:**
+                    - **Diagnostic for HCL**
+                    - **TRAP positive** (tartrate-resistant acid phosphatase)
+                    - Excellent response to treatment
+                    """)
+            
+            with tab4:
+                st.markdown("### **Nuclear and Cytoplasmic Abnormalities**")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("#### **🔵 Nuclear Abnormalities**")
+                    st.markdown("""
+                    **Morphological Changes:**
+                    - **Irregular nuclear contours**: Cleaved, convoluted shapes
+                    - **Multiple nucleoli**: >2 prominent nucleoli
+                    - **Abnormal chromatin patterns**: Too fine or too coarse
+                    - **Nuclear-cytoplasmic asynchrony**: Immature nucleus with mature cytoplasm
+                    - **Binucleated cells**: Two nuclei in single cell
+                    - **Nuclear fragmentation**: Apoptotic changes
+                    
+                    **Clinical Significance:**
+                    - Indicates **cellular dysplasia**
+                    - Suggests **malignant transformation**
+                    - Correlates with **genetic abnormalities**
+                    - Helps differentiate **reactive vs. neoplastic**
+                    """)
+                
+                with col2:
+                    st.markdown("#### **🔵 Cytoplasmic Abnormalities**")
+                    st.markdown("""
+                    **Morphological Changes:**
+                    - **Abnormal granulation**: Too few, too many, or abnormal granules
+                    - **Vacuolation patterns**: Large or multiple vacuoles
+                    - **Unusual inclusions**: Non-specific inclusions
+                    - **Color variations**: Abnormal basophilia or eosinophilia
+                    - **Texture changes**: Rough or smooth cytoplasm
+                    - **Size variations**: Unusually large or small cytoplasm
+                    
+                    **Clinical Significance:**
+                    - Reflects **metabolic abnormalities**
+                    - Indicates **protein synthesis defects**
+                    - Suggests **organelle dysfunction**
+                    - Helps classify **leukemia subtypes**
+                    """)
+            
+            # AI Detection Summary
+            st.markdown("---")
+            st.info("""
+            **🤖 AI Model Detection Capabilities:**
+            
+            The LeukoApp AI model has been trained to recognize these cellular abnormalities through:
+            - **Deep learning analysis** of cell morphology, nuclear characteristics, and cytoplasmic features
+            - **Pattern recognition** of pathognomonic features like Auer rods and smudge cells
+            - **Quantitative assessment** of blast cell percentages and cellular ratios
+            - **Multi-feature integration** combining size, shape, color, and texture analysis
+            
+            **⚠️ Important:** While the AI can detect these features, **definitive diagnosis requires:**
+            - Professional hematopathologist review
+            - Additional laboratory tests (flow cytometry, cytogenetics, molecular studies)
+            - Clinical correlation with patient history and physical examination
+            - Bone marrow biopsy when indicated
+            """)
+            
             # Disclaimers section at the end of prediction page
             st.markdown("---")
             st.subheader("⚠️ Important Disclaimers")
