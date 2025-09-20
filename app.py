@@ -26,6 +26,24 @@ try:
 except ImportError:
     pass
 
+# ----------------- CONSTANTS -----------------
+MODEL_PATH = "blood_cancer_model.pth"
+IMAGE_SIZE = (224, 224)
+LABELS_MAP = {0: "Benign", 1: "Early_Pre_B", 2: "Pre_B", 3: "Pro_B"}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOW_DEMO_MODE = False
+
+# Configurable heuristics (very relaxed for screen capture conditions)
+EDGE_VAR_THRESHOLD = 200   # Very low threshold to accept screen-captured images
+GREEN_RATIO_THRESHOLD = 0.8  # High tolerance for screen backgrounds
+COLOR_RATIO_THRESHOLD = 0.05  # Very low threshold for weak screen colors
+DEFAULT_TEMPERATURE = 1.5  # Reduced from 2.0 for better calibration
+
+# Screen capture specific settings
+SCREEN_CAPTURE_MODE = True  # Enable screen capture compatibility
+MIN_BRIGHTNESS = 0.1  # Minimum acceptable brightness
+MAX_BRIGHTNESS = 0.9  # Maximum acceptable brightness
+
 # ----------------- LOGGING SETUP -----------------
 logging.basicConfig(
     level=logging.INFO,
