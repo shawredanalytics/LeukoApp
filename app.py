@@ -26,77 +26,59 @@ def validate_blood_smear_image(image):
     Validates if the uploaded image is likely a blood smear image.
     Returns True if it's likely a blood smear, False otherwise.
     
-    This function uses balanced heuristics to:
-    1. Reject obvious non-medical images (like birds, landscapes)
-    2. Accept blood smear images with various staining techniques
+    This function uses very permissive heuristics to:
+    1. Only reject extremely obvious non-medical images
+    2. Accept most blood smear images with various staining techniques and conditions
     """
     # Convert to numpy array
     img_array = np.array(image)
     
-    # 1. Basic dimension check
-    if image.width < 32 or image.height < 32:
+    # 1. Basic dimension check - only reject extremely small images
+    if image.width < 20 or image.height < 20:
         return False
     
     # 2. Convert to smaller size for faster processing
     small_img = image.resize((100, 100))
     img_array_small = np.array(small_img)
     
-    # 3. Color analysis to detect obvious non-medical images
+    # 3. Very permissive color analysis - only reject extremely obvious non-medical images
     if len(img_array_small.shape) == 3 and img_array_small.shape[2] == 3:
         # Calculate average color
         avg_color = np.mean(img_array_small, axis=(0, 1))
         r, g, b = avg_color
         
-        # Detect bird images and other natural images
-        # Birds often have bright, saturated colors and high contrast
-        max_color = max(r, g, b)
-        min_color = min(r, g, b)
-        
-        # Check for extremely bright and saturated colors (typical in bird photos)
-        if max_color > 180:
-            # High contrast with bright colors (common in bird photography)
-            if (max_color - min_color) > 100:
-                # Check for typical bird photo characteristics
-                # Bright blues (sky), bright greens (foliage), bright reds/oranges (feathers)
-                if (b > 150 and b > r * 1.3 and b > g * 1.2) or \
-                   (g > 150 and g > r * 1.3 and g > b * 1.2) or \
-                   (r > 150 and r > g * 1.3 and r > b * 1.2):
-                    return False
-        
-        # Check for very high saturation (typical in nature photography, rare in microscopy)
-        # Calculate saturation
-        max_rgb = max(r, g, b)
-        min_rgb = min(r, g, b)
-        if max_rgb > 0:
-            saturation = (max_rgb - min_rgb) / max_rgb
-            # Very high saturation with bright colors suggests nature photography
-            if saturation > 0.7 and max_rgb > 150:
+        # Only reject images with extremely unnatural colors for medical images
+        # Very bright neon-like colors that are impossible in microscopy
+        if max(r, g, b) > 240 and min(r, g, b) < 50:
+            # Check for extremely saturated single colors (like pure red, green, or blue)
+            if (r > 240 and g < 50 and b < 50) or \
+               (g > 240 and r < 50 and b < 50) or \
+               (b > 240 and r < 50 and g < 50):
                 return False
     
-    # 4. Texture analysis - birds have complex textures, blood smears are more uniform
+    # 4. Very permissive texture analysis - only reject extremely complex images
     # Convert to grayscale
     if len(img_array_small.shape) == 3:
         gray = np.mean(img_array_small, axis=2).astype(np.uint8)
     else:
         gray = img_array_small
     
-    # Calculate edge density (birds have many edges, blood smears fewer)
-    # Simple edge detection using gradient
+    # Calculate edge density with very high threshold
     grad_x = np.abs(np.diff(gray, axis=1))
     grad_y = np.abs(np.diff(gray, axis=0))
     
-    # Count strong edges
-    strong_edges_x = np.sum(grad_x > 30)
-    strong_edges_y = np.sum(grad_y > 30)
+    # Count very strong edges only
+    strong_edges_x = np.sum(grad_x > 80)  # Much higher threshold
+    strong_edges_y = np.sum(grad_y > 80)  # Much higher threshold
     total_pixels = gray.size
     
     edge_density = (strong_edges_x + strong_edges_y) / total_pixels
     
-    # If edge density is very high, likely a complex natural image (like a bird)
-    if edge_density > 0.15:
+    # Only reject if edge density is extremely high (like detailed photographs)
+    if edge_density > 0.3:  # Much higher threshold
         return False
     
-    # If passed all checks, likely a medical image
+    # Accept most images as potential medical images
     return True
 
 # Function to initialize the model
@@ -192,15 +174,90 @@ def main():
             is_valid_image = validate_blood_smear_image(image)
             
             if not is_valid_image:
-                st.error("⚠️ **This doesn't appear to be a blood smear image.** Please upload an image of a blood smear for analysis.")
-                st.warning("The application is designed specifically for blood smear images and cannot provide predictions for other image types.")
+                st.error("⚠️ **Image Rejected for Analysis**")
+                st.markdown("**Your image was rejected for the following possible reasons:**")
                 
-                # Show example of what a blood smear should look like
-                st.info("Blood smear images typically show individual cells with clear cellular structures on a light background.")
+                # Get image dimensions for specific feedback
+                img_width, img_height = image.size
                 
-                # Simple message for invalid images
+                # Check specific rejection criteria and provide explanations
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("### 🚫 **Possible Rejection Reasons:**")
+                    
+                    # Check dimension issues
+                    if img_width < 20 or img_height < 20:
+                        st.error(f"❌ **Image too small**: {img_width}x{img_height} pixels (minimum: 20x20)")
+                    else:
+                        st.success(f"✅ **Size acceptable**: {img_width}x{img_height} pixels")
+                    
+                    # Check for obvious non-medical characteristics
+                    img_array = np.array(image)
+                    if len(img_array.shape) == 3 and img_array.shape[2] == 3:
+                        avg_color = np.mean(img_array, axis=(0, 1))
+                        r, g, b = avg_color
+                        
+                        # Check for neon colors
+                        if max(r, g, b) > 240 and min(r, g, b) < 50:
+                            if (r > 240 and g < 50 and b < 50) or \
+                               (g > 240 and r < 50 and b < 50) or \
+                               (b > 240 and r < 50 and g < 50):
+                                st.error("❌ **Unnatural colors detected** (pure neon colors)")
+                            else:
+                                st.info("⚠️ **High contrast colors detected**")
+                        else:
+                            st.success("✅ **Color profile acceptable**")
+                    
+                    # Check texture complexity
+                    small_img = image.resize((100, 100))
+                    img_array_small = np.array(small_img)
+                    if len(img_array_small.shape) == 3:
+                        gray = np.mean(img_array_small, axis=2).astype(np.uint8)
+                    else:
+                        gray = img_array_small
+                    
+                    grad_x = np.abs(np.diff(gray, axis=1))
+                    grad_y = np.abs(np.diff(gray, axis=0))
+                    strong_edges_x = np.sum(grad_x > 80)
+                    strong_edges_y = np.sum(grad_y > 80)
+                    edge_density = (strong_edges_x + strong_edges_y) / gray.size
+                    
+                    if edge_density > 0.3:
+                        st.error(f"❌ **Too complex/detailed** (edge density: {edge_density:.3f})")
+                    else:
+                        st.success(f"✅ **Texture complexity acceptable** (edge density: {edge_density:.3f})")
+                
+                with col2:
+                    st.markdown("### ✅ **Acceptable Image Specifications:**")
+                    st.markdown("""
+                    **📏 Dimensions:**
+                    - Minimum: 20x20 pixels
+                    - Recommended: ≥200x200 pixels
+                    - Maximum: No limit
+                    
+                    **🎨 Color Requirements:**
+                    - Medical/microscopy colors
+                    - Various staining techniques accepted:
+                      - Wright's stain (purple/pink)
+                      - Giemsa stain (blue/purple)
+                      - May-Grünwald stain
+                    - Avoid pure neon colors
+                    
+                    **🔬 Image Characteristics:**
+                    - Blood cells on light background
+                    - Microscopic cellular structures
+                    - Various magnifications accepted
+                    - Different lighting conditions OK
+                    
+                    **📁 File Formats:**
+                    - JPG/JPEG
+                    - PNG
+                    - File size: No specific limit
+                    """)
+                
                 st.markdown("---")
-                st.info("Please upload a valid blood smear image to continue.")
+                st.info("💡 **Tip**: Ensure your image shows blood cells under microscopic view with typical medical staining. The system is designed to accept most legitimate blood smear images while filtering out obvious non-medical content.")
                 
                 # Exit the prediction flow for invalid images
                 return
