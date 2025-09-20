@@ -284,7 +284,76 @@ def main():
                 leukemia_prob = probabilities[1].item() * 100
                 st.metric("Leukemia Indicators", f"{leukemia_prob:.1f}%")
             
+            # Confidence Score Analysis
+            st.markdown("---")
+            st.subheader("🎯 Confidence Analysis")
+            
+            # Calculate confidence metrics
+            max_prob = max(normal_prob, leukemia_prob)
+            confidence_level = max_prob
+            prediction_certainty = abs(normal_prob - leukemia_prob)
+            
+            # Determine confidence category
+            if confidence_level >= 90:
+                confidence_category = "Very High"
+                confidence_color = "🟢"
+            elif confidence_level >= 75:
+                confidence_category = "High"
+                confidence_color = "🟡"
+            elif confidence_level >= 60:
+                confidence_category = "Moderate"
+                confidence_color = "🟠"
+            else:
+                confidence_category = "Low"
+                confidence_color = "🔴"
+            
+            # Display confidence information
+            conf_col1, conf_col2, conf_col3 = st.columns(3)
+            
+            with conf_col1:
+                st.metric(
+                    label="Overall Confidence",
+                    value=f"{confidence_level:.1f}%",
+                    help="Highest probability score indicating model confidence"
+                )
+            
+            with conf_col2:
+                st.metric(
+                    label="Prediction Certainty",
+                    value=f"{prediction_certainty:.1f}%",
+                    help="Difference between the two class probabilities"
+                )
+            
+            with conf_col3:
+                st.markdown(f"**Confidence Level:**")
+                st.markdown(f"{confidence_color} **{confidence_category}**")
+            
+            # Confidence interpretation
+            st.markdown("**📋 Confidence Interpretation:**")
+            if confidence_level >= 90:
+                st.success("🎯 **Very High Confidence**: The model is very certain about this prediction.")
+            elif confidence_level >= 75:
+                st.info("✅ **High Confidence**: The model shows strong certainty in this prediction.")
+            elif confidence_level >= 60:
+                st.warning("⚠️ **Moderate Confidence**: The model has reasonable certainty, but consider additional analysis.")
+            else:
+                st.error("❌ **Low Confidence**: The model is uncertain. Results should be interpreted with caution.")
+            
+            # Additional confidence details
+            with st.expander("🔍 Detailed Confidence Metrics"):
+                st.write("**Raw Probability Scores:**")
+                st.write(f"• Normal WBC: {normal_prob:.3f}%")
+                st.write(f"• Leukemia Indicators: {leukemia_prob:.3f}%")
+                st.write(f"• Confidence Gap: {prediction_certainty:.3f}%")
+                
+                if demo:
+                    st.info("ℹ️ **Demo Mode**: Confidence scores are simulated for demonstration purposes.")
+                else:
+                    st.write(f"• Temperature Scaling: {temp_value}")
+                    st.write("• Model uses calibrated probabilities for better confidence estimation")
+            
             # Display warning based on prediction
+            st.markdown("---")
             if leukemia_prob > 50:
                 st.warning("⚠️ Potential leukemia indicators detected. Please consult with a healthcare professional.")
             else:
