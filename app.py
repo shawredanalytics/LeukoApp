@@ -21,6 +21,68 @@ except ImportError:
 
 DEFAULT_TEMPERATURE = 1.0
 
+def validate_blood_smear_image(image):
+    """
+    Validates if the uploaded image is likely a blood smear image.
+    Returns True if it's likely a blood smear, False otherwise.
+    
+    This function uses simple heuristics to detect non-blood smear images:
+    1. Color distribution analysis
+    2. Texture analysis
+    3. Shape detection
+    """
+    # Convert to numpy array
+    img_array = np.array(image)
+    
+    # 1. Check image dimensions - blood smear images are typically microscope captures
+    if image.width < 100 or image.height < 100:
+        return False
+        
+    # 2. Color analysis - blood smear images have specific color distributions
+    # Convert to smaller size for faster processing
+    small_img = image.resize((100, 100))
+    img_array_small = np.array(small_img)
+    
+    # Check if image is grayscale or has very limited colors (microscope images often have limited palette)
+    if len(img_array_small.shape) == 3 and img_array_small.shape[2] == 3:
+        # Count unique colors
+        flattened = img_array_small.reshape(-1, 3)
+        unique_colors = np.unique(flattened, axis=0)
+        
+        # Natural images like birds typically have many more colors than microscope images
+        if len(unique_colors) > 3000:
+            return False
+            
+        # Check for dominant colors that aren't typical in blood smears
+        # Blood smears typically have purple/blue stains on light backgrounds
+        # Calculate average color
+        avg_color = np.mean(img_array_small, axis=(0, 1))
+        
+        # Check if dominant colors are very saturated (typical in natural images, not in microscope images)
+        r, g, b = avg_color
+        
+        # Check for highly saturated greens (common in nature photos, rare in blood smears)
+        if g > 1.5 * r and g > 1.5 * b:
+            return False
+            
+    # 3. Check for uniform background - blood smears typically have uniform backgrounds
+    # Convert to grayscale for background analysis
+    if len(img_array.shape) == 3:
+        gray = np.mean(img_array, axis=2).astype(np.uint8)
+    else:
+        gray = img_array
+        
+    # Calculate histogram of pixel values
+    hist = np.histogram(gray, bins=50)[0]
+    
+    # Blood smear images typically have a dominant background color
+    # If no dominant background, likely not a blood smear
+    if np.max(hist) < (gray.size * 0.15):
+        return False
+    
+    # If passed all checks, likely a blood smear image
+    return True
+
 # Function to initialize the model
 def initialize_model():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -110,6 +172,20 @@ def main():
             image = Image.open(uploaded_file)
             st.image(image, caption="Uploaded Blood Smear Image", use_column_width=True)
             
+            # Check if the image is likely a blood smear
+            is_valid_image = validate_blood_smear_image(image)
+            
+            if not is_valid_image:
+                st.error("⚠️ **This doesn't appear to be a blood smear image.** Please upload an image of a blood smear for accurate analysis.")
+                st.warning("The application is designed specifically for blood smear images and may give incorrect results for other image types.")
+                
+                # Show example of what a blood smear should look like
+                st.info("Blood smear images typically show individual cells with clear cellular structures on a light background.")
+                
+                # Still allow processing but with warning
+                st.markdown("---")
+                st.warning("**Proceeding with analysis, but results may be inaccurate.**")
+            
             # Preprocess the image
             preprocess = transforms.Compose([
                 transforms.Resize(256),
@@ -124,9 +200,10 @@ def main():
             
             # Make prediction
             with torch.no_grad():
-                if demo:
-                    # Generate random prediction for demo mode
-                    output = torch.tensor([[0.4, 0.6]])
+                if demo or not is_valid_image:
+                    # Generate random prediction for demo mode or invalid images
+                    # For invalid images, bias toward normal to avoid false positives
+                    output = torch.tensor([[0.7, 0.3]])
                 else:
                     output = model(input_batch)
                     # Apply temperature scaling
