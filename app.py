@@ -240,9 +240,21 @@ def main():
         
         # Process the uploaded image
         if uploaded_file is not None:
-            # Display the uploaded image
+            # Display the uploaded image in compact format
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True)
+            
+            # Create columns for compact layout
+            img_col1, img_col2 = st.columns([1, 2])
+            
+            with img_col1:
+                st.image(image, caption="Uploaded Image", width=200)
+            
+            with img_col2:
+                # Show basic image info
+                img_width, img_height = image.size
+                st.markdown(f"**📏 Image Dimensions:** {img_width} × {img_height} pixels")
+                st.markdown(f"**📁 File Name:** {uploaded_file.name}")
+                st.markdown(f"**💾 File Size:** {len(uploaded_file.getvalue()) / 1024:.1f} KB")
             
             # Check if the image is likely a blood smear
             is_valid_image = validate_blood_smear_image(image)
@@ -252,7 +264,6 @@ def main():
                 st.markdown("**This image does not resemble blood smear architecture and has been rejected for analysis.**")
                 
                 # Get image dimensions and properties for specific feedback
-                img_width, img_height = image.size
                 img_array = np.array(image)
                 
                 # Provide detailed rejection analysis
@@ -263,6 +274,9 @@ def main():
                     
                     # Check specific rejection criteria
                     rejection_reasons = []
+                    
+                    # Get image dimensions for rejection analysis
+                    img_width, img_height = image.size
                     
                     # 1. Size check
                     if img_width < 50 or img_height < 50:
@@ -471,7 +485,6 @@ def main():
                         st.markdown("• Atypical lymphocytes<br>• Abnormal granulocytes<br>• Smudge cells (CLL)", unsafe_allow_html=True)
                     else:
                         st.markdown("• Nuclear abnormalities<br>• Cytoplasmic changes<br>• Size variations", unsafe_allow_html=True)
-                
             else:
                 st.success("✅ No significant leukemia indicators detected.")
                 normal_col1, normal_col2 = st.columns(2)
@@ -511,21 +524,10 @@ def main():
             prediction_certainty = abs(normal_prob - leukemia_prob)
             
             with conf_col1:
-                st.metric(
-                    label="Overall Confidence",
-                    value=f"{confidence_level:.1f}%",
-                    help="Highest probability score indicating model confidence"
-                )
-            
+                st.metric("🎯 Confidence Level", f"{confidence_level:.1f}%")
             with conf_col2:
-                st.metric(
-                    label="Prediction Certainty",
-                    value=f"{prediction_certainty:.1f}%",
-                    help="Difference between the two class probabilities"
-                )
-            
+                st.metric("📊 Prediction Certainty", f"{prediction_certainty:.1f}%")
             with conf_col3:
-                st.markdown(f"**Confidence Level:**")
                 if confidence_level >= 90:
                     st.markdown("🟢 **Very High**")
                 elif confidence_level >= 75:
@@ -611,14 +613,8 @@ def main():
             
             # Additional disclaimer for low-resolution images
             if is_low_resolution:
-                st.markdown("---")
                 st.warning("⚠️ **Important Note for Low-Resolution Images:**")
-                st.markdown("""
-                - The prediction accuracy may be reduced due to low image resolution
-                - Fine cellular details may not be clearly visible for analysis
-                - Consider using a higher resolution image for more reliable results
-                - Always consult with a healthcare professional for medical diagnosis
-                """)
+                st.markdown("- The prediction accuracy may be reduced due to low image resolution<br>- Fine cellular details may not be clearly visible for analysis<br>- Consider using a higher resolution image for more reliable results<br>- Always consult with a healthcare professional for medical diagnosis", unsafe_allow_html=True)
                 
             # Debug information
             if show_debug:
@@ -641,23 +637,17 @@ def main():
                     
                 with col2:
                     st.markdown("**🟡 Chronic Leukemia**")
-                    st.markdown("• **CLL Cells**: Small lymphocytes, dense chromatin, smudge cells present")
-                    st.markdown("• **CML Cells**: All granulocyte stages, left shift, increased basophils")
+                    st.markdown("• **CLL Cells**: Small mature lymphocytes, smudge cells present")
+                    st.markdown("• **CML Cells**: Left shift, increased granulocytes, basophilia")
                     
                 with col3:
                     st.markdown("**🔵 Diagnostic Features**")
-                    st.markdown("• **Auer Rods**: Pathognomonic for AML")
-                    st.markdown("• **Smudge Cells**: Characteristic of CLL")
-                    st.markdown("• **Flower Cells**: Diagnostic for ATLL")
+                    st.markdown("• **Auer Rods**: Pathognomonic for AML<br>• **Smudge Cells**: Characteristic of CLL<br>• **Flower Cells**: Diagnostic for ATLL", unsafe_allow_html=True)
             
             # AI Detection Summary (Compact)
             with st.expander("🤖 AI Detection Summary", expanded=False):
                 st.markdown("**How the AI Identifies Leukemia Indicators:**")
-                st.markdown("• **Morphological Analysis**: Cell size, shape, nuclear features")
-                st.markdown("• **Chromatin Pattern**: Nuclear texture and density assessment")
-                st.markdown("• **Cytoplasmic Features**: Color, granules, inclusions")
-                st.markdown("• **Cell Population**: Blast percentage and maturation stages")
-                st.markdown("• **Pathognomonic Markers**: Auer rods, smudge cells, flower cells")
+                st.markdown("• **Morphological Analysis**: Cell size, shape, nuclear features<br>• **Chromatin Pattern**: Nuclear texture and density assessment<br>• **Cytoplasmic Features**: Color, granules, inclusions<br>• **Cell Population**: Blast percentage and maturation stages<br>• **Pathognomonic Markers**: Auer rods, smudge cells, flower cells", unsafe_allow_html=True)
             
             # Disclaimers (Compact)
             st.markdown("---")
