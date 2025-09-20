@@ -434,6 +434,15 @@ def main():
             # Display results
             st.subheader("📊 Prediction Results")
             
+            # Show warning/success message first based on prediction
+            leukemia_prob = probabilities[1].item() * 100
+            if leukemia_prob > 50:
+                st.markdown('<p style="color: red; font-weight: bold; font-size: 18px;">🚩 Potential leukemia indicators detected. Please consult with a healthcare professional.</p>', unsafe_allow_html=True)
+            else:
+                st.success("✅ No significant leukemia indicators detected.")
+            
+            st.markdown("---")
+            
             # Create columns for the results
             col1, col2 = st.columns(2)
             
@@ -444,7 +453,6 @@ def main():
                 
             with col2:
                 # Leukemia probability
-                leukemia_prob = probabilities[1].item() * 100
                 st.metric("Leukemia Indicators", f"{leukemia_prob:.1f}%")
             
             # Confidence Score Analysis
@@ -562,12 +570,8 @@ def main():
                     st.write(f"• Temperature Scaling: {temp_value}")
                     st.write("• Model uses calibrated probabilities for better confidence estimation")
             
-            # Display warning based on prediction
+            # Display warning based on prediction (removed from here since it's now at the top)
             st.markdown("---")
-            if leukemia_prob > 50:
-                st.warning("⚠️ Potential leukemia indicators detected. Please consult with a healthcare professional.")
-            else:
-                st.success("✅ No significant leukemia indicators detected.")
             
             # Additional disclaimer for low-resolution images
             if is_low_resolution:
