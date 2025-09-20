@@ -3,7 +3,7 @@ import torch
 from torchvision.models import googlenet, GoogLeNet_Weights
 import torch.nn as nn
 from torchvision import transforms
-from PIL import Image
+from PIL import Image, ImageOps
 from streamlit_option_menu import option_menu
 import os
 import logging
@@ -29,10 +29,10 @@ LABELS_MAP = {0: "Benign", 1: "Early_Pre_B", 2: "Pre_B", 3: "Pro_B"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 ALLOW_DEMO_MODE = False  # If True, runs demo mode if model weights missing
 
-# Configurable heuristics
-EDGE_VAR_THRESHOLD = 1500
-GREEN_RATIO_THRESHOLD = 0.35
-COLOR_RATIO_THRESHOLD = 0.25
+# Configurable heuristics (relaxed for live conditions)
+EDGE_VAR_THRESHOLD = 800   # Lowered from 1500 → allow slightly smoother images
+GREEN_RATIO_THRESHOLD = 0.6  # Raised from 0.35 → tolerate more green background
+COLOR_RATIO_THRESHOLD = 0.15 # Lowered from 0.25 → allow weaker stains
 DEFAULT_TEMPERATURE = 2.0
 
 # ----------------- MODEL LOADING -----------------
@@ -107,10 +107,8 @@ def validate_image(uploaded_file) -> bool:
 
 def is_blood_smear(img: Image.Image, filename: str = "unknown"):
     """
-    Stricter heuristic check:
-    - Color dominance: red/purple relative to green.
-    - Texture detail: high variance in edges (cell nuclei visible).
-    Returns (bool, reason).
+    Heuristic check for blood smear suitability in live conditions.
+    - More tolerant to greenish backgrounds and weaker staining.
     """
     try:
         img_small = img.resize((128, 128))
@@ -123,27 +121,27 @@ def is_blood_smear(img: Image.Image, filename: str = "unknown"):
         purple_ratio = np.mean((r > 0.4) & (b > 0.3))
         green_ratio = np.mean(g > 0.5)
 
-        # Texture heuristics using numpy gradient instead of cv2
-        gray = np.mean(arr, axis=2)  # grayscale approximation
+        # Texture heuristics using numpy gradient
+        gray = np.mean(arr, axis=2)
         gx, gy = np.gradient(gray)
         edges = np.sqrt(gx**2 + gy**2)
         edge_var = np.var(edges)
 
-        # Checks with reasons
+        # Checks with relaxed thresholds
         if (red_ratio + purple_ratio) <= COLOR_RATIO_THRESHOLD:
-            reason = "Image colors inconsistent with stained blood smears (insufficient red/purple tones)."
-            logger.warning(f"[{filename}] Blood smear check failed: {reason}")
-            return False, reason
+            reason = "Weak staining detected; may affect accuracy but accepted."
+            logger.info(f"[{filename}] Blood smear weak stain: continuing anyway.")
+            return True, reason
         if green_ratio >= GREEN_RATIO_THRESHOLD:
-            reason = "Image background too green; not typical for blood smear slides."
-            logger.warning(f"[{filename}] Blood smear check failed: {reason}")
-            return False, reason
+            reason = "Greenish background detected; tolerated under live conditions."
+            logger.info(f"[{filename}] Blood smear green background: continuing anyway.")
+            return True, reason
         if edge_var <= EDGE_VAR_THRESHOLD:
-            reason = "Image lacks sufficient cellular texture (too smooth for blood smear)."
-            logger.warning(f"[{filename}] Blood smear check failed: {reason}")
-            return False, reason
+            reason = "Low texture detected; may affect accuracy but accepted."
+            logger.info(f"[{filename}] Blood smear low texture: continuing anyway.")
+            return True, reason
 
-        # ✅ Passed all checks
+        # ✅ Passed checks
         logger.info(f"[{filename}] Blood smear check passed.")
         return True, ""
     except Exception as e:
@@ -159,14 +157,20 @@ def preprocess_image(uploaded_file):
 
         uploaded_file.seek(0)
         img = Image.open(uploaded_file)
+
+        # ✅ Handle mobile phone rotation metadata
+        img = ImageOps.exif_transpose(img)
+
         if img.mode != "RGB":
             img = img.convert("RGB")
 
-        # ✅ Extra validation for blood smear with filename
+        # ✅ Relaxed validation for blood smear with filename
         ok, reason = is_blood_smear(img, uploaded_file.name)
         if not ok:
             st.error(f"🚨 Image does not meet specifications of the test model\n\n**Reason:** {reason}")
             return None
+        elif reason:
+            st.warning(f"⚠️ Note: {reason}")
 
         transform = transforms.Compose(
             [
@@ -183,10 +187,6 @@ def preprocess_image(uploaded_file):
 
 # ----------------- PREDICTION -----------------
 def make_prediction(model, device, img_tensor, temperature: float = DEFAULT_TEMPERATURE):
-    """
-    Make prediction with calibrated probabilities using temperature scaling.
-    Default temperature rationalizes confidence.
-    """
     try:
         img_tensor = img_tensor.to(device)
         with torch.no_grad():
@@ -194,19 +194,12 @@ def make_prediction(model, device, img_tensor, temperature: float = DEFAULT_TEMP
             if isinstance(output, (tuple, list)):
                 output = output[0]
 
-            # 🔹 Apply temperature scaling
             probs = torch.softmax(output / temperature, dim=1)
-
-            # Predicted class
             conf, pred = torch.max(probs, dim=1)
 
-            # Convert to numpy
             all_probs = probs[0].cpu().numpy()
-
-            # Normalize distribution
             all_probs = all_probs / all_probs.sum()
 
-            # Confidence capped at 95%
             conf = float(all_probs[pred.item()])
             conf = min(conf, 0.95)
 
@@ -255,7 +248,6 @@ def main():
             default_index=0,
         )
 
-        # Allow user to tweak temperature scaling if needed
         temp_value = st.slider("Temperature Scaling", 0.5, 5.0, DEFAULT_TEMPERATURE, 0.1)
 
     model, device, demo = initialize_model()
@@ -266,7 +258,7 @@ def main():
         st.subheader("📤 Upload Blood Smear Image")
         st.info("⚠️ Educational tool only — not a medical device.")
 
-        uploaded = st.file_uploader("Choose a blood smear image", type=["jpg", "jpeg", "png"])
+        uploaded = st.file_uploader("Choose a blood smear image (camera or gallery)", type=["jpg", "jpeg", "png"])
         if uploaded:
             st.image(uploaded, caption="Uploaded Image", use_container_width=True)
             tensor = preprocess_image(uploaded)
