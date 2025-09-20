@@ -26,17 +26,77 @@ def validate_blood_smear_image(image):
     Validates if the uploaded image is likely a blood smear image.
     Returns True if it's likely a blood smear, False otherwise.
     
-    This function uses very minimal validation to only reject obviously invalid images:
-    1. Basic dimension check only
-    2. Accept all medical-looking images
+    This function uses balanced heuristics to:
+    1. Reject obvious non-medical images (like birds, landscapes)
+    2. Accept blood smear images with various staining techniques
     """
-    # 1. Only reject extremely small images that can't be processed
+    # Convert to numpy array
+    img_array = np.array(image)
+    
+    # 1. Basic dimension check
     if image.width < 32 or image.height < 32:
         return False
     
-    # 2. Accept all other images - let the model handle the classification
-    # This ensures that all blood smear images, regardless of staining technique,
-    # lighting conditions, or microscope settings, are accepted for analysis
+    # 2. Convert to smaller size for faster processing
+    small_img = image.resize((100, 100))
+    img_array_small = np.array(small_img)
+    
+    # 3. Color analysis to detect obvious non-medical images
+    if len(img_array_small.shape) == 3 and img_array_small.shape[2] == 3:
+        # Calculate average color
+        avg_color = np.mean(img_array_small, axis=(0, 1))
+        r, g, b = avg_color
+        
+        # Detect bird images and other natural images
+        # Birds often have bright, saturated colors and high contrast
+        max_color = max(r, g, b)
+        min_color = min(r, g, b)
+        
+        # Check for extremely bright and saturated colors (typical in bird photos)
+        if max_color > 180:
+            # High contrast with bright colors (common in bird photography)
+            if (max_color - min_color) > 100:
+                # Check for typical bird photo characteristics
+                # Bright blues (sky), bright greens (foliage), bright reds/oranges (feathers)
+                if (b > 150 and b > r * 1.3 and b > g * 1.2) or \
+                   (g > 150 and g > r * 1.3 and g > b * 1.2) or \
+                   (r > 150 and r > g * 1.3 and r > b * 1.2):
+                    return False
+        
+        # Check for very high saturation (typical in nature photography, rare in microscopy)
+        # Calculate saturation
+        max_rgb = max(r, g, b)
+        min_rgb = min(r, g, b)
+        if max_rgb > 0:
+            saturation = (max_rgb - min_rgb) / max_rgb
+            # Very high saturation with bright colors suggests nature photography
+            if saturation > 0.7 and max_rgb > 150:
+                return False
+    
+    # 4. Texture analysis - birds have complex textures, blood smears are more uniform
+    # Convert to grayscale
+    if len(img_array_small.shape) == 3:
+        gray = np.mean(img_array_small, axis=2).astype(np.uint8)
+    else:
+        gray = img_array_small
+    
+    # Calculate edge density (birds have many edges, blood smears fewer)
+    # Simple edge detection using gradient
+    grad_x = np.abs(np.diff(gray, axis=1))
+    grad_y = np.abs(np.diff(gray, axis=0))
+    
+    # Count strong edges
+    strong_edges_x = np.sum(grad_x > 30)
+    strong_edges_y = np.sum(grad_y > 30)
+    total_pixels = gray.size
+    
+    edge_density = (strong_edges_x + strong_edges_y) / total_pixels
+    
+    # If edge density is very high, likely a complex natural image (like a bird)
+    if edge_density > 0.15:
+        return False
+    
+    # If passed all checks, likely a medical image
     return True
 
 # Function to initialize the model
