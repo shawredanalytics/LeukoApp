@@ -439,145 +439,70 @@ def main():
             if leukemia_prob > 50:
                 st.markdown('<p style="color: red; font-weight: bold; font-size: 18px;">🚩 Potential leukemia indicators detected. Please consult with a healthcare professional.</p>', unsafe_allow_html=True)
                 
-                # Show specific leukemia indicators observed
-                st.markdown("### 🔬 **Leukemia Indicators Observed in This Smear:**")
+                # Show specific leukemia indicators observed in compact format
+                st.markdown("**🔬 Leukemia Indicators Observed:**")
                 
-                # Create indicator columns
-                ind_col1, ind_col2 = st.columns(2)
+                # Create compact indicator columns
+                ind_col1, ind_col2, ind_col3 = st.columns(3)
                 
                 with ind_col1:
-                    st.markdown("#### **🩸 Cellular Abnormalities Detected:**")
+                    st.markdown("**🩸 Cellular Abnormalities:**")
                     if leukemia_prob > 85:
-                        st.markdown("""
-                        - **🔴 High blast cell count** (>20% threshold exceeded)
-                        - **🔴 Abnormal nuclear morphology** (irregular contours, multiple nucleoli)
-                        - **🔴 Immature cell population** (lymphoblasts/myeloblasts present)
-                        - **🔴 Abnormal nuclear-cytoplasmic ratio** (enlarged nuclei)
-                        - **🔴 Pathognomonic features** (possible Auer rods or smudge cells)
-                        """)
+                        st.markdown("• High blast cell count (>20%)<br>• Abnormal nuclear morphology<br>• Immature cell population<br>• Pathognomonic features", unsafe_allow_html=True)
                     elif leukemia_prob > 70:
-                        st.markdown("""
-                        - **🟡 Elevated blast cells** (approaching diagnostic threshold)
-                        - **🟡 Nuclear irregularities** (abnormal chromatin patterns)
-                        - **🟡 Cellular dysplasia** (size and shape variations)
-                        - **🟡 Immature granulocytes** (left shift pattern)
-                        """)
+                        st.markdown("• Elevated blast cells<br>• Nuclear irregularities<br>• Cellular dysplasia<br>• Left shift pattern", unsafe_allow_html=True)
                     else:
-                        st.markdown("""
-                        - **🟠 Suspicious cellular features** (requires further evaluation)
-                        - **🟠 Atypical lymphocytes** (morphological variants)
-                        - **🟠 Mild nuclear abnormalities** (subtle changes detected)
-                        """)
+                        st.markdown("• Suspicious cellular features<br>• Atypical lymphocytes<br>• Mild nuclear abnormalities", unsafe_allow_html=True)
                 
                 with ind_col2:
-                    st.markdown("#### **📊 Morphological Patterns:**")
+                    st.markdown("**📊 Morphological Patterns:**")
                     if leukemia_prob > 85:
-                        st.markdown("""
-                        - **Acute leukemia pattern** - High confidence
-                        - **Blast crisis morphology** - Severe abnormalities
-                        - **Monoclonal population** - Uniform abnormal cells
-                        - **Loss of normal maturation** - Arrested development
-                        """)
+                        st.markdown("• Acute leukemia pattern<br>• Blast crisis morphology<br>• Monoclonal population<br>• Loss of maturation", unsafe_allow_html=True)
                     elif leukemia_prob > 70:
-                        st.markdown("""
-                        - **Chronic leukemia pattern** - Moderate confidence
-                        - **Mixed cell population** - Various maturation stages
-                        - **Increased white cell count** - Quantitative changes
-                        - **Abnormal cell distribution** - Skewed populations
-                        """)
+                        st.markdown("• Chronic leukemia pattern<br>• Mixed cell population<br>• Increased WBC count<br>• Abnormal distribution", unsafe_allow_html=True)
                     else:
-                        st.markdown("""
-                        - **Early changes detected** - Subtle abnormalities
-                        - **Reactive vs. neoplastic** - Requires differentiation
-                        - **Borderline findings** - Close monitoring needed
-                        """)
+                        st.markdown("• Early changes detected<br>• Reactive vs. neoplastic<br>• Borderline findings", unsafe_allow_html=True)
                 
-                # Specific cell types likely present
-                st.markdown("#### **🎯 Likely Cell Types Present:**")
-                cell_types_cols = st.columns(3)
-                
-                with cell_types_cols[0]:
+                with ind_col3:
+                    st.markdown("**🎯 Likely Cell Types:**")
                     if leukemia_prob > 75:
-                        st.markdown("""
-                        **Blast Cells:**
-                        - Lymphoblasts (ALL)
-                        - Myeloblasts (AML)
-                        - Undifferentiated blasts
-                        """)
-                
-                with cell_types_cols[1]:
-                    if leukemia_prob > 60:
-                        st.markdown("""
-                        **Abnormal Mature Cells:**
-                        - Atypical lymphocytes
-                        - Abnormal granulocytes
-                        - Smudge cells (if CLL)
-                        """)
-                
-                with cell_types_cols[2]:
-                    if leukemia_prob > 50:
-                        st.markdown("""
-                        **Supporting Features:**
-                        - Nuclear abnormalities
-                        - Cytoplasmic changes
-                        - Size variations
-                        """)
+                        st.markdown("• Lymphoblasts (ALL)<br>• Myeloblasts (AML)<br>• Undifferentiated blasts", unsafe_allow_html=True)
+                    elif leukemia_prob > 60:
+                        st.markdown("• Atypical lymphocytes<br>• Abnormal granulocytes<br>• Smudge cells (CLL)", unsafe_allow_html=True)
+                    else:
+                        st.markdown("• Nuclear abnormalities<br>• Cytoplasmic changes<br>• Size variations", unsafe_allow_html=True)
                 
             else:
                 st.success("✅ No significant leukemia indicators detected.")
-                st.markdown("#### **🔬 Normal Blood Smear Characteristics Observed:**")
-                normal_cols = st.columns(2)
-                
-                with normal_cols[0]:
-                    st.markdown("""
-                    **✅ Normal Cellular Features:**
-                    - **Mature white blood cells** - Proper differentiation
-                    - **Normal nuclear morphology** - Regular contours and chromatin
-                    - **Appropriate cell sizes** - Within normal ranges
-                    - **Balanced cell populations** - Normal ratios maintained
-                    """)
-                
-                with normal_cols[1]:
-                    st.markdown("""
-                    **✅ Healthy Blood Parameters:**
-                    - **<5% blast cells** - Within normal limits
-                    - **Normal granulocyte maturation** - Complete development
-                    - **Regular lymphocyte morphology** - Typical appearance
-                    - **No pathognomonic features** - Absence of disease markers
-                    """)
+                normal_col1, normal_col2 = st.columns(2)
+                with normal_col1:
+                    st.markdown("**✅ Normal Features:** Mature WBCs, normal nuclear morphology, appropriate cell sizes", unsafe_allow_html=True)
+                with normal_col2:
+                    st.markdown("**✅ Healthy Parameters:** <5% blast cells, normal maturation, no disease markers", unsafe_allow_html=True)
             
-            st.markdown("---")
-            
-            # Create columns for the results
-            col1, col2 = st.columns(2)
+            # Create columns for the results (more compact)
+            col1, col2, col3 = st.columns(3)
             
             with col1:
-                # Normal probability
                 normal_prob = probabilities[0].item() * 100
                 st.metric("Normal WBC", f"{normal_prob:.1f}%")
                 
             with col2:
-                # Leukemia probability
                 st.metric("Leukemia Indicators", f"{leukemia_prob:.1f}%")
             
-            # Confidence Score Analysis
-            st.markdown("---")
-            st.subheader("🎯 Confidence Analysis")
-            
-            # Calculate confidence metrics
-            max_prob = max(normal_prob, leukemia_prob)
-            confidence_level = max_prob
-            prediction_certainty = abs(normal_prob - leukemia_prob)
-            
-            # Determine confidence category
-            if confidence_level >= 90:
-                confidence_category = "Very High"
-                confidence_color = "🟢"
-            elif confidence_level >= 75:
-                confidence_category = "High"
-                confidence_color = "🟡"
-            elif confidence_level >= 60:
-                confidence_category = "Moderate"
+            with col3:
+                # Calculate confidence metrics
+                max_prob = max(normal_prob, leukemia_prob)
+                confidence_level = max_prob
+                if confidence_level >= 90:
+                    confidence_category = "Very High 🟢"
+                elif confidence_level >= 75:
+                    confidence_category = "High 🟡"
+                elif confidence_level >= 60:
+                    confidence_category = "Moderate 🟠"
+                else:
+                    confidence_category = "Low 🔴"
+                st.metric("Confidence", confidence_category)
                 confidence_color = "🟠"
             else:
                 confidence_category = "Low"
@@ -697,344 +622,43 @@ def main():
                 st.write(f"Device: {device}")
                 st.write(f"Demo Mode: {demo}")
             
-            # Leukemia Cell Indicators Section
-            st.markdown("---")
-            st.subheader("🔬 Leukemia Cell Indicators - What the AI Detects")
-            
-            st.markdown("""
-            The AI model analyzes blood smear images to identify specific cellular abnormalities that may indicate leukemia. 
-            Below are the key cell types and features that serve as leukemia indicators:
-            """)
-            
-            # Create tabs for different leukemia types
-            tab1, tab2, tab3, tab4 = st.tabs(["🔴 Acute Leukemia Cells", "🟡 Chronic Leukemia Cells", "🔵 Pathognomonic Features", "🟢 Nuclear Abnormalities"])
-            
-            with tab1:
-                st.markdown("### **Acute Leukemia Cell Indicators**")
+            # Leukemia Cell Indicators Section (Compact)
+            with st.expander("🔬 Leukemia Cell Indicators - What the AI Detects", expanded=False):
+                st.markdown("The AI analyzes blood smears for specific cellular abnormalities indicating leukemia:")
                 
-                col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
                 
                 with col1:
-                    st.markdown("#### **🩸 Lymphoblasts (ALL)**")
-                    st.markdown("""
-                    **Morphological Features:**
-                    - **Size**: Small to medium (10-18 μm)
-                    - **Nucleus**: Round, fine chromatin, prominent nucleoli
-                    - **Cytoplasm**: Scanty, basophilic, may contain vacuoles
-                    - **Nuclear-Cytoplasmic Ratio**: High (large nucleus, little cytoplasm)
+                    st.markdown("**🔴 Acute Leukemia**")
+                    st.markdown("• **Lymphoblasts (ALL)**: Small-medium cells, high N:C ratio, >20% indicates ALL")
+                    st.markdown("• **Myeloblasts (AML)**: Medium-large cells, may contain Auer rods, >20% indicates AML")
                     
-                    **Subtypes Detected:**
-                    - **L1**: Small, uniform blasts with regular nuclei
-                    - **L2**: Larger, heterogeneous blasts with irregular nuclei
-                    - **L3**: Large blasts with prominent vacuoles (Burkitt-like)
-                    
-                    **Clinical Significance:**
-                    - **>20% blasts** in blood/bone marrow indicates acute leukemia
-                    - Most common in children and young adults
-                    - Requires immediate medical attention
-                    """)
-                
                 with col2:
-                    st.markdown("#### **🩸 Myeloblasts (AML)**")
-                    st.markdown("""
-                    **Morphological Features:**
-                    - **Size**: Medium to large (15-25 μm)
-                    - **Nucleus**: Round to oval, fine chromatin, 2-4 nucleoli
-                    - **Cytoplasm**: Moderate amount, may contain granules
-                    - **Special Features**: May contain Auer rods (pathognomonic)
+                    st.markdown("**🟡 Chronic Leukemia**")
+                    st.markdown("• **CLL Cells**: Small lymphocytes, dense chromatin, smudge cells present")
+                    st.markdown("• **CML Cells**: All granulocyte stages, left shift, increased basophils")
                     
-                    **Subtypes Detected:**
-                    - **M0**: Minimally differentiated
-                    - **M1**: Without maturation
-                    - **M2**: With maturation
-                    - **M3**: Promyelocytic (APL) - contains Auer rods
-                    - **M4**: Myelomonocytic
-                    - **M5**: Monocytic
-                    - **M6**: Erythroleukemia
-                    - **M7**: Megakaryoblastic
-                    
-                    **Clinical Significance:**
-                    - **>20% blasts** indicates acute myeloid leukemia
-                    - More common in adults
-                    - Auer rods are diagnostic for AML
-                    """)
+                with col3:
+                    st.markdown("**🔵 Diagnostic Features**")
+                    st.markdown("• **Auer Rods**: Pathognomonic for AML")
+                    st.markdown("• **Smudge Cells**: Characteristic of CLL")
+                    st.markdown("• **Flower Cells**: Diagnostic for ATLL")
             
-            with tab2:
-                st.markdown("### **Chronic Leukemia Cell Indicators**")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("#### **🩸 CLL Cells (Chronic Lymphocytic Leukemia)**")
-                    st.markdown("""
-                    **Morphological Features:**
-                    - **Size**: Small, similar to normal lymphocytes (7-10 μm)
-                    - **Nucleus**: Dense, clumped chromatin ("soccer ball" pattern)
-                    - **Cytoplasm**: Scanty, pale blue
-                    - **Shape**: Round, mature-appearing
-                    
-                    **Characteristic Features:**
-                    - **Smudge Cells**: Fragile cells that rupture during slide preparation
-                    - **Prolymphocytes**: <10% larger cells with prominent nucleoli
-                    - **Monoclonal Population**: Single clone of abnormal B-cells
-                    
-                    **Clinical Significance:**
-                    - **>5,000/μL** abnormal lymphocytes in blood
-                    - Most common leukemia in Western adults
-                    - Indolent course, may not require immediate treatment
-                    """)
-                
-                with col2:
-                    st.markdown("#### **🩸 CML Cells (Chronic Myeloid Leukemia)**")
-                    st.markdown("""
-                    **Morphological Features:**
-                    - **Spectrum**: All stages of granulocyte maturation present
-                    - **Blasts**: <5% in chronic phase, >20% in blast crisis
-                    - **Left Shift**: Increased immature granulocytes
-                    - **Basophilia**: Increased basophils (characteristic)
-                    
-                    **Cell Types Observed:**
-                    - **Myelocytes**: Immature granulocytes
-                    - **Metamyelocytes**: Intermediate maturation stage
-                    - **Promyelocytes**: Early granulocyte precursors
-                    - **Increased Eosinophils and Basophils**
-                    
-                    **Clinical Significance:**
-                    - **Philadelphia Chromosome**: t(9;22) translocation
-                    - **BCR-ABL** fusion gene (molecular marker)
-                    - Three phases: chronic, accelerated, blast crisis
-                    """)
+            # AI Detection Summary (Compact)
+            with st.expander("🤖 AI Detection Summary", expanded=False):
+                st.markdown("**How the AI Identifies Leukemia Indicators:**")
+                st.markdown("• **Morphological Analysis**: Cell size, shape, nuclear features")
+                st.markdown("• **Chromatin Pattern**: Nuclear texture and density assessment")
+                st.markdown("• **Cytoplasmic Features**: Color, granules, inclusions")
+                st.markdown("• **Cell Population**: Blast percentage and maturation stages")
+                st.markdown("• **Pathognomonic Markers**: Auer rods, smudge cells, flower cells")
             
-            with tab3:
-                st.markdown("### **Pathognomonic Features (Diagnostic Markers)**")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("#### **🔴 Auer Rods**")
-                    st.markdown("""
-                    **Description:**
-                    - **Crystalline inclusions** in myeloblasts
-                    - **Rod-shaped or needle-like** structures
-                    - **Pink to red** on Wright-Giemsa stain
-                    - **Pathognomonic for AML** (diagnostic)
-                    
-                    **Clinical Significance:**
-                    - **100% specific** for acute myeloid leukemia
-                    - Most common in **M3 (APL)** subtype
-                    - Indicates myeloid lineage differentiation
-                    - Immediate diagnostic confirmation
-                    """)
-                    
-                    st.markdown("#### **🔴 Smudge Cells**")
-                    st.markdown("""
-                    **Description:**
-                    - **Ruptured lymphocytes** during slide preparation
-                    - **Nuclear material** without intact cell membrane
-                    - **Characteristic of CLL** cells
-                    - **Fragile cell membranes** due to abnormal proteins
-                    
-                    **Clinical Significance:**
-                    - **Highly suggestive** of chronic lymphocytic leukemia
-                    - Indicates **fragile cell structure**
-                    - Correlates with **disease progression**
-                    """)
-                
-                with col2:
-                    st.markdown("#### **🔴 Flower Cells**")
-                    st.markdown("""
-                    **Description:**
-                    - **Multilobed nuclei** resembling flower petals
-                    - **Characteristic of ATLL** (Adult T-cell Leukemia/Lymphoma)
-                    - **Convoluted nuclear contours**
-                    - **Mature T-cell morphology**
-                    
-                    **Clinical Significance:**
-                    - **Pathognomonic for ATLL**
-                    - Associated with **HTLV-1 infection**
-                    - Poor prognosis indicator
-                    """)
-                    
-                    st.markdown("#### **🔴 Hairy Cells**")
-                    st.markdown("""
-                    **Description:**
-                    - **Cytoplasmic projections** ("hairy" appearance)
-                    - **Medium-sized cells** with oval nuclei
-                    - **Abundant pale cytoplasm**
-                    - **Characteristic of Hairy Cell Leukemia**
-                    
-                    **Clinical Significance:**
-                    - **Diagnostic for HCL**
-                    - **TRAP positive** (tartrate-resistant acid phosphatase)
-                    - Excellent response to treatment
-                    """)
-            
-            with tab4:
-                st.markdown("### **Nuclear and Cytoplasmic Abnormalities**")
-                
-                col1, col2 = st.columns(2)
-                
-                with col1:
-                    st.markdown("#### **🔵 Nuclear Abnormalities**")
-                    st.markdown("""
-                    **Morphological Changes:**
-                    - **Irregular nuclear contours**: Cleaved, convoluted shapes
-                    - **Multiple nucleoli**: >2 prominent nucleoli
-                    - **Abnormal chromatin patterns**: Too fine or too coarse
-                    - **Nuclear-cytoplasmic asynchrony**: Immature nucleus with mature cytoplasm
-                    - **Binucleated cells**: Two nuclei in single cell
-                    - **Nuclear fragmentation**: Apoptotic changes
-                    
-                    **Clinical Significance:**
-                    - Indicates **cellular dysplasia**
-                    - Suggests **malignant transformation**
-                    - Correlates with **genetic abnormalities**
-                    - Helps differentiate **reactive vs. neoplastic**
-                    """)
-                
-                with col2:
-                    st.markdown("#### **🔵 Cytoplasmic Abnormalities**")
-                    st.markdown("""
-                    **Morphological Changes:**
-                    - **Abnormal granulation**: Too few, too many, or abnormal granules
-                    - **Vacuolation patterns**: Large or multiple vacuoles
-                    - **Unusual inclusions**: Non-specific inclusions
-                    - **Color variations**: Abnormal basophilia or eosinophilia
-                    - **Texture changes**: Rough or smooth cytoplasm
-                    - **Size variations**: Unusually large or small cytoplasm
-                    
-                    **Clinical Significance:**
-                    - Reflects **metabolic abnormalities**
-                    - Indicates **protein synthesis defects**
-                    - Suggests **organelle dysfunction**
-                    - Helps classify **leukemia subtypes**
-                    """)
-            
-            # AI Detection Summary
+            # Disclaimers (Compact)
             st.markdown("---")
-            st.info("""
-            **🤖 AI Model Detection Capabilities:**
-            
-            The LeukoApp AI model has been trained to recognize these cellular abnormalities through:
-            - **Deep learning analysis** of cell morphology, nuclear characteristics, and cytoplasmic features
-            - **Pattern recognition** of pathognomonic features like Auer rods and smudge cells
-            - **Quantitative assessment** of blast cell percentages and cellular ratios
-            - **Multi-feature integration** combining size, shape, color, and texture analysis
-            
-            **⚠️ Important:** While the AI can detect these features, **definitive diagnosis requires:**
-            - Professional hematopathologist review
-            - Additional laboratory tests (flow cytometry, cytogenetics, molecular studies)
-            - Clinical correlation with patient history and physical examination
-            - Bone marrow biopsy when indicated
-            """)
-            
-            # Disclaimers section at the end of prediction page
-            st.markdown("---")
-            st.subheader("⚠️ Important Disclaimers")
-            
-            disclaimer_col1, disclaimer_col2 = st.columns(2)
-            
-            with disclaimer_col1:
-                st.markdown("**🔬 Model Status:**")
-                if demo:
-                    st.info("• Running in DEMO mode with random predictions")
-                    st.info("• Model weights not found - using simulated results")
-                else:
-                    st.success("• Enhanced model loaded and active")
-                    st.success("• Using trained weights for predictions")
-            
-            with disclaimer_col2:
-                st.markdown("**⚕️ Medical Disclaimer:**")
-                st.warning("• This tool is for research and educational purposes only")
-                st.warning("• Not intended for clinical diagnosis or treatment")
-                st.warning("• Always consult healthcare professionals for medical advice")
-                st.warning("• Results should not replace professional medical evaluation")
-            
-            # Legal and Regulatory Disclaimers
-            st.markdown("---")
-            st.subheader("⚖️ Legal and Regulatory Disclaimers")
-            
-            # Create expandable legal section for detailed terms
-            with st.expander("📋 **IMPORTANT: Click to Read Full Legal Terms**", expanded=False):
-                st.markdown("""
-                ### 🚫 **PROHIBITED USES**
-                
-                **This AI model and application are STRICTLY PROHIBITED from being used for:**
-                
-                - ❌ **Clinical Diagnosis**: Making medical diagnoses for patient care
-                - ❌ **Treatment Decisions**: Guiding medical treatment or therapy choices  
-                - ❌ **Live Patient Testing**: Real-time diagnostic testing in clinical settings
-                - ❌ **Medical Screening**: Population or individual health screening programs
-                - ❌ **Emergency Medicine**: Any emergency or urgent care situations
-                - ❌ **Regulatory Submissions**: FDA, CE marking, or other regulatory filings
-                - ❌ **Commercial Diagnostics**: Sale or distribution as a diagnostic device
-                
-                ### ✅ **PERMITTED USES ONLY**
-                
-                **This tool is designed exclusively for:**
-                
-                - ✅ **Educational Purposes**: Learning about AI in medical imaging
-                - ✅ **Research Applications**: Academic and scientific research projects
-                - ✅ **Algorithm Development**: Improving AI diagnostic methodologies
-                - ✅ **Training Programs**: Medical education and AI training curricula
-                - ✅ **Proof of Concept**: Demonstrating AI capabilities in controlled environments
-                
-                ### ⚖️ **LEGAL DISCLAIMERS**
-                
-                **By using this application, you acknowledge and agree that:**
-                
-                1. **No Medical Device Clearance**: This software has NOT been cleared, approved, or authorized by the FDA, CE, Health Canada, or any other regulatory body for medical use.
-                
-                2. **No Clinical Validation**: The model has not undergone clinical trials or validation studies required for medical devices.
-                
-                3. **Research Tool Only**: This is a research prototype and educational demonstration tool only.
-                
-                4. **No Warranty**: The software is provided "AS IS" without any warranties, express or implied, regarding accuracy, reliability, or fitness for any particular purpose.
-                
-                5. **Limitation of Liability**: The developers, Shawred Analytics, and associated parties shall not be liable for any damages arising from the use or misuse of this software.
-                
-                6. **Professional Responsibility**: Healthcare professionals must rely on their clinical judgment, established diagnostic procedures, and appropriate medical testing.
-                
-                7. **No Substitute for Medical Care**: This tool does not replace proper medical examination, laboratory tests, or professional medical consultation.
-                
-                ### 🏥 **FOR HEALTHCARE PROFESSIONALS**
-                
-                **If you are a healthcare professional:**
-                
-                - This tool should NEVER influence patient care decisions
-                - Always follow established clinical protocols and guidelines
-                - Use only validated, FDA-approved diagnostic tools for patient care
-                - Maintain professional standards and ethical obligations
-                - Report any misuse of this tool in clinical settings
-                
-                ### 📞 **REPORTING MISUSE**
-                
-                **If you become aware of this tool being used inappropriately for clinical care, please report to:**
-                - Email: shawred.analytics@gmail.com
-                - Subject: "Inappropriate Clinical Use Report"
-                
-                ### 📅 **TERMS ACCEPTANCE**
-                
-                **Continued use of this application constitutes acceptance of these terms.**
-                **Last Updated: January 2024**
-                """)
-            
-            # Prominent warning banner
-            st.error("""
-            🚨 **CRITICAL WARNING**: This AI model is NOT approved for clinical use. 
-            Using this tool for patient diagnosis or treatment decisions is PROHIBITED and may be DANGEROUS.
-            Always consult qualified healthcare professionals for medical advice.
-            """)
-            
-            # Regulatory compliance notice
-            st.info("""
-            📋 **Regulatory Compliance**: This software is intended for research and educational use only. 
-            It has not been evaluated by the FDA or other regulatory agencies for medical device use.
-            """)
-            
-            # Contact information for legal inquiries
-            st.markdown("---")
-            st.markdown("**📧 Legal Inquiries**: For questions about appropriate use, contact shawred.analytics@gmail.com")
+            with st.expander("⚠️ Important Disclaimers", expanded=False):
+                st.error("🚨 **CRITICAL**: This AI is NOT approved for clinical use. For research/education only.")
+                st.warning("📋 **Medical Disclaimer**: Always consult healthcare professionals for diagnosis.")
+                st.info("📧 **Contact**: shawred.analytics@gmail.com for questions.")
         
         # Sample images section completely removed as requested
 
