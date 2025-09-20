@@ -182,18 +182,9 @@ def main():
                 # Show example of what a blood smear should look like
                 st.info("Blood smear images typically show individual cells with clear cellular structures on a light background.")
                 
-                # Show sample images section to help the user
+                # Simple message for invalid images
                 st.markdown("---")
-                st.subheader("Please try using one of our sample images instead:")
-                if os.path.exists("samples"):
-                    sample_files = [f for f in os.listdir("samples") if f.endswith(('.png', '.jpg', '.jpeg'))]
-                    if sample_files:
-                        selected_sample = st.selectbox("Select a sample blood smear image:", sample_files)
-                        if st.button("Use this sample"):
-                            st.session_state['selected_sample'] = selected_sample
-                            st.experimental_rerun()
-                else:
-                    st.write("Sample images not found. Please upload a valid blood smear image.")
+                st.info("Please upload a valid blood smear image to continue.")
                 
                 # Exit the prediction flow for invalid images
                 return
