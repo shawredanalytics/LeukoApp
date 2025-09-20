@@ -188,7 +188,7 @@ def initialize_model():
 # ----------------- MAIN -----------------
 def main():
     st.set_page_config(
-        page_title="LeukoApp - Blood Cancer Detection",
+        page_title="Leuko - Blood Cancer Prediction Tool",
         page_icon="🩸",
         layout="wide"
     )
@@ -197,7 +197,7 @@ def main():
     if not HAS_OPENCV:
         st.sidebar.info("ℹ️ Basic image processing active. Install opencv-python for enhanced screen capture support.")
     
-    st.title("🩸 LeukoApp - Blood Cancer Prediction")
+    st.title("🩸 Leuko - Blood Cancer Prediction Tool")
     st.markdown("*AI-powered blood smear analysis for educational purposes*")
     
     # Developer Credits with dx.anx platform information + UPDATED CONTACT
@@ -787,11 +787,11 @@ GoogLeNet(
             })
 
     else:  # About
-        st.header("📋 About LeukoApp")
+        st.header("📋 About Leuko")
         
         st.markdown("---")
         st.markdown("### 🏢 **Development Team & Platform**")
-        st.success("🔬 **LeukoApp is part of the dx.anx Platform Initiative**")
+        st.success("🔬 **Leuko is part of the dx.anx Platform Initiative**")
         
         col1, col2 = st.columns([1, 2])
         with col1:
