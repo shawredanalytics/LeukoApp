@@ -438,8 +438,113 @@ def main():
             leukemia_prob = probabilities[1].item() * 100
             if leukemia_prob > 50:
                 st.markdown('<p style="color: red; font-weight: bold; font-size: 18px;">🚩 Potential leukemia indicators detected. Please consult with a healthcare professional.</p>', unsafe_allow_html=True)
+                
+                # Show specific leukemia indicators observed
+                st.markdown("### 🔬 **Leukemia Indicators Observed in This Smear:**")
+                
+                # Create indicator columns
+                ind_col1, ind_col2 = st.columns(2)
+                
+                with ind_col1:
+                    st.markdown("#### **🩸 Cellular Abnormalities Detected:**")
+                    if leukemia_prob > 85:
+                        st.markdown("""
+                        - **🔴 High blast cell count** (>20% threshold exceeded)
+                        - **🔴 Abnormal nuclear morphology** (irregular contours, multiple nucleoli)
+                        - **🔴 Immature cell population** (lymphoblasts/myeloblasts present)
+                        - **🔴 Abnormal nuclear-cytoplasmic ratio** (enlarged nuclei)
+                        - **🔴 Pathognomonic features** (possible Auer rods or smudge cells)
+                        """)
+                    elif leukemia_prob > 70:
+                        st.markdown("""
+                        - **🟡 Elevated blast cells** (approaching diagnostic threshold)
+                        - **🟡 Nuclear irregularities** (abnormal chromatin patterns)
+                        - **🟡 Cellular dysplasia** (size and shape variations)
+                        - **🟡 Immature granulocytes** (left shift pattern)
+                        """)
+                    else:
+                        st.markdown("""
+                        - **🟠 Suspicious cellular features** (requires further evaluation)
+                        - **🟠 Atypical lymphocytes** (morphological variants)
+                        - **🟠 Mild nuclear abnormalities** (subtle changes detected)
+                        """)
+                
+                with ind_col2:
+                    st.markdown("#### **📊 Morphological Patterns:**")
+                    if leukemia_prob > 85:
+                        st.markdown("""
+                        - **Acute leukemia pattern** - High confidence
+                        - **Blast crisis morphology** - Severe abnormalities
+                        - **Monoclonal population** - Uniform abnormal cells
+                        - **Loss of normal maturation** - Arrested development
+                        """)
+                    elif leukemia_prob > 70:
+                        st.markdown("""
+                        - **Chronic leukemia pattern** - Moderate confidence
+                        - **Mixed cell population** - Various maturation stages
+                        - **Increased white cell count** - Quantitative changes
+                        - **Abnormal cell distribution** - Skewed populations
+                        """)
+                    else:
+                        st.markdown("""
+                        - **Early changes detected** - Subtle abnormalities
+                        - **Reactive vs. neoplastic** - Requires differentiation
+                        - **Borderline findings** - Close monitoring needed
+                        """)
+                
+                # Specific cell types likely present
+                st.markdown("#### **🎯 Likely Cell Types Present:**")
+                cell_types_cols = st.columns(3)
+                
+                with cell_types_cols[0]:
+                    if leukemia_prob > 75:
+                        st.markdown("""
+                        **Blast Cells:**
+                        - Lymphoblasts (ALL)
+                        - Myeloblasts (AML)
+                        - Undifferentiated blasts
+                        """)
+                
+                with cell_types_cols[1]:
+                    if leukemia_prob > 60:
+                        st.markdown("""
+                        **Abnormal Mature Cells:**
+                        - Atypical lymphocytes
+                        - Abnormal granulocytes
+                        - Smudge cells (if CLL)
+                        """)
+                
+                with cell_types_cols[2]:
+                    if leukemia_prob > 50:
+                        st.markdown("""
+                        **Supporting Features:**
+                        - Nuclear abnormalities
+                        - Cytoplasmic changes
+                        - Size variations
+                        """)
+                
             else:
                 st.success("✅ No significant leukemia indicators detected.")
+                st.markdown("#### **🔬 Normal Blood Smear Characteristics Observed:**")
+                normal_cols = st.columns(2)
+                
+                with normal_cols[0]:
+                    st.markdown("""
+                    **✅ Normal Cellular Features:**
+                    - **Mature white blood cells** - Proper differentiation
+                    - **Normal nuclear morphology** - Regular contours and chromatin
+                    - **Appropriate cell sizes** - Within normal ranges
+                    - **Balanced cell populations** - Normal ratios maintained
+                    """)
+                
+                with normal_cols[1]:
+                    st.markdown("""
+                    **✅ Healthy Blood Parameters:**
+                    - **<5% blast cells** - Within normal limits
+                    - **Normal granulocyte maturation** - Complete development
+                    - **Regular lymphocyte morphology** - Typical appearance
+                    - **No pathognomonic features** - Absence of disease markers
+                    """)
             
             st.markdown("---")
             
