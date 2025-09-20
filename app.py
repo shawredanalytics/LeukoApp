@@ -664,6 +664,12 @@ def main():
     st.title("🩸 LeukoApp - Blood Cancer Prediction")
     st.markdown("*AI-powered blood smear analysis for educational purposes*")
     
+    # Developer Credits with dx.anx platform information
+    st.markdown("---")
+    st.markdown("**🏢 Developed by [Shawred Analytics](https://www.shawredanalytics.com) | Part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)**")
+    st.markdown("*Advanced image-based diagnostics powered by state-of-the-art machine learning algorithms*")
+    st.markdown("*With contributions from: Pavan Kumar Didde, Shaik Zuber, Ritabrata Dey, Patrika Chatterjee, Titli Paul, Sumit Mitra*")
+    
     # ⚠️ CRITICAL LIMITATION NOTICE
     st.error("🚨 **IMPORTANT LIMITATION NOTICE**")
     st.markdown("""
@@ -834,6 +840,9 @@ def main():
     elif selected == "Model Info":
         st.header("🧠 Model Information")
         
+        # DEVELOPER CREDITS WITH dx.anx PLATFORM
+        st.info("🏢 **Part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)** by [Shawred Analytics](https://www.shawredanalytics.com) - Bridging diagnostics and analytics for superior patient care")
+        
         # CLEAR SCOPE DEFINITION
         st.error("🎯 **MODEL SCOPE: WHITE BLOOD CELL LEUKEMIA DETECTION ONLY**")
         st.markdown("""
@@ -871,9 +880,86 @@ def main():
         st.write("• Bias correction applied to reduce false positive rate")
         st.write("• Temperature scaling for calibrated confidence scores")
         st.write("• Enhanced preprocessing for mobile image compatibility")
+        st.write("• Screen capture support with automatic enhancement")
+        
+        # Development credits with dx.anx platform
+        st.markdown("---")
+        st.success("🏆 **Part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)** by [Shawred Analytics](https://www.shawredanalytics.com) - Advanced image-based diagnostics with ML")
+        st.info("🔬 **Contributors:** Pavan Kumar Didde, Shaik Zuber, Ritabrata Dey, Patrika Chatterjee, Titli Paul, Sumit Mitra")
+        st.info("🌐 **Platform Mission:** Bridging diagnostics and analytics for superior patient care")
 
     else:  # About
         st.header("📋 About LeukoApp")
+        
+        # DEVELOPER INFORMATION WITH dx.anx PLATFORM
+        st.markdown("---")
+        st.markdown("### 🏢 **Development Team & Platform**")
+        
+        # dx.anx Platform Information
+        st.success("🔬 **LeukoApp is part of the dx.anx Platform Initiative**")
+        st.markdown("""
+        **dx.anx** represents a groundbreaking innovation in healthcare, bridging the gap between diagnostics and analytics to deliver superior patient care. By harnessing the power of machine learning and advanced analytics, the platform empowers healthcare professionals with the tools they need to make accurate diagnoses, develop personalized treatment plans, and ultimately, improve patient outcomes.
+        
+        **🎯 About dx.anx Platform:**
+        - Integrates diagnostics and analytics for enhanced image-based diagnostics
+        - Powered by state-of-the-art machine learning algorithms  
+        - Particularly valuable in radiology, pathology, and dermatology
+        - Enables detection of patterns, anomalies, and subtle indicators that might elude human observers
+        """)
+        
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.image("https://via.placeholder.com/150x100/1f77b4/ffffff?text=dx.anx+Platform", 
+                    caption="dx.anx Platform", width=150)
+        
+        with col2:
+            st.markdown("**🏢 Developed by: [Shawred Analytics](https://www.shawredanalytics.com)**")
+            st.markdown("**🔬 Platform: [dx.anx Analytics](https://shawredanalytics.com/dx-anx-analytics)**")
+            st.markdown("**📧 Contact:** contact@shawredanalytics.com")
+            st.markdown("**🌐 Website:** [www.shawredanalytics.com](https://www.shawredanalytics.com)")
+            st.markdown("**🔗 Advancing image-based medical diagnostics with AI**")
+        
+        # LeukoApp Specific Information from dx.anx
+        st.markdown("---")
+        st.markdown("### 🩸 **About LeukoApp (From dx.anx Platform)**")
+        st.markdown("""
+        **LeukoApp** is a deep learning–based diagnostic aid designed to assist laboratories in the early detection of blood cancer by analyzing digitized peripheral blood smear images. Developed by Shawred Analytics - Data Analytics Team, this system integrates computer vision with laboratory workflows to provide scalable, reproducible, and clinically relevant predictions.
+        
+        **🔬 Key Capabilities:**
+        - Cloud-enabled tool that leverages image-based data analytics
+        - Applies advanced image processing and machine learning techniques to segment and classify leukocytes
+        - Identifies abnormal leukocytes and early-stage leukemia patterns
+        - Provides decision support for pathologists and lab technicians
+        """)
+        
+        # Confidence Levels from dx.anx
+        st.markdown("### 📊 **Confidence Level System**")
+        confidence_levels = {
+            "Level 1 (0.85 – 1.0)": "High confidence – Automated classification very likely correct",
+            "Level 2 (0.60 – 0.84)": "Moderate confidence – Classification probable but not definitive", 
+            "Level 3 (0.40 – 0.59)": "Low confidence – System uncertain; expert review required",
+            "Level 4 (0.0 – 0.39)": "Very low confidence – Classification unreliable"
+        }
+        
+        for level, description in confidence_levels.items():
+            st.write(f"**{level}:** {description}")
+            
+        st.warning("⚠️ **Important:** Results require manual review by a trained professional. A skilled pathologist or laboratory specialist should visually confirm findings.")
+        
+        #### 👥 **Core Contributors:**
+        contributors = [
+            "🔬 **Pavan Kumar Didde** - Lead AI/ML Engineer",
+            "💻 **Shaik Zuber** - Software Developer", 
+            "🧠 **Ritabrata Dey** - Data Scientist",
+            "🔍 **Patrika Chatterjee** - Research Analyst",
+            "📊 **Titli Paul** - Quality Assurance",
+            "⚙️ **Sumit Mitra** - System Architecture"
+        ]
+        
+        for contributor in contributors:
+            st.markdown(f"• {contributor}")
+        
+        st.markdown("---")
         
         # CLEAR SCOPE AND LIMITATIONS
         st.error("🔬 **IMPORTANT: LIMITED TO WHITE BLOOD CELL ANALYSIS ONLY**")
@@ -926,6 +1012,21 @@ def main():
         st.write("• Trained specifically on WBC leukemia detection")
         st.write("• Uses convolutional neural networks for feature extraction")
         st.write("• Applies various preprocessing and post-processing techniques")
+        
+        st.markdown("---")
+        st.markdown("### 📜 **Acknowledgments**")
+        st.success("🏢 **Proudly developed as part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)** by [Shawred Analytics](https://www.shawredanalytics.com) with expertise from our dedicated team of AI researchers, data scientists, and software engineers.")
+        st.info("💡 **dx.anx Platform Mission:** Bridging the gap between diagnostics and analytics to deliver superior patient care through machine learning and advanced analytics.")
+        st.markdown("🌐 **Learn more:** Visit [dx.anx Analytics](https://shawredanalytics.com/dx-anx-analytics) to explore our comprehensive image-based diagnostic platform.")
+        
+        # Current Status from dx.anx
+        st.markdown("---")
+        st.markdown("### ⚠️ **Current Development Status**")
+        st.warning("""
+        **Testing & Validation Phase:** The LeukoApp is currently in its testing and validation phase. 
+        Results should be considered only as preliminary screening outputs, not a substitute for standard laboratory diagnostic practices.
+        """)
+        st.info("**Copyright © 2025 Shawred Analytics - All Rights Reserved.**")
 
 if __name__ == "__main__":
     main()
