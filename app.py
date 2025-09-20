@@ -23,31 +23,119 @@ DEFAULT_TEMPERATURE = 1.0
 
 def validate_blood_smear_image(image):
     """
-    Validates if the uploaded image is likely a blood smear image.
+    Validates if the uploaded image resembles blood smear architecture.
     Returns True if it's likely a blood smear, False otherwise.
     
-    This function uses extremely permissive heuristics to:
-    1. Accept virtually all images except completely invalid ones
-    2. Only reject images that are clearly corrupted or unusable
+    This function implements strict validation to ensure only blood smear-like images are analyzed:
+    1. Checks for cellular structures and patterns typical of blood smears
+    2. Validates color distribution consistent with stained blood cells
+    3. Rejects non-medical images, text documents, screenshots, etc.
     """
     # Convert to numpy array
     img_array = np.array(image)
     
-    # 1. Very basic dimension check - only reject tiny images
-    if image.width < 10 or image.height < 10:
+    # 1. Basic dimension and format checks
+    if image.width < 50 or image.height < 50:
         return False
     
-    # 2. Check if image is completely black or white (corrupted)
-    if len(img_array.shape) >= 2:
-        # Check for completely black image
-        if np.max(img_array) < 5:
-            return False
-        
-        # Check for completely white image
-        if np.min(img_array) > 250:
-            return False
+    # Ensure RGB format
+    if len(img_array.shape) != 3 or img_array.shape[2] != 3:
+        return False
     
-    # Accept virtually all other images
+    # 2. Check if image is completely black, white, or single color (corrupted/invalid)
+    if np.max(img_array) < 10 or np.min(img_array) > 245:
+        return False
+    
+    # Check for single color dominance (likely not a blood smear)
+    if np.std(img_array) < 15:
+        return False
+    
+    # 3. Blood smear color validation - should have medical staining colors
+    # Convert to different color spaces for analysis
+    r_channel = img_array[:, :, 0].astype(float)
+    g_channel = img_array[:, :, 1].astype(float)
+    b_channel = img_array[:, :, 2].astype(float)
+    
+    # Calculate color statistics
+    r_mean, g_mean, b_mean = np.mean(r_channel), np.mean(g_channel), np.mean(b_channel)
+    r_std, g_std, b_std = np.std(r_channel), np.std(g_channel), np.std(b_channel)
+    
+    # 4. Reject images with characteristics inconsistent with blood smears
+    
+    # Reject pure grayscale images (blood smears should have color variation)
+    if abs(r_mean - g_mean) < 5 and abs(g_mean - b_mean) < 5 and abs(r_mean - b_mean) < 5:
+        return False
+    
+    # Reject images with extreme color bias (likely not medical)
+    total_mean = (r_mean + g_mean + b_mean) / 3
+    if (r_mean > total_mean * 1.5 or g_mean > total_mean * 1.5 or b_mean > total_mean * 1.5):
+        return False
+    
+    # 5. Check for text-like patterns (reject documents, screenshots with text)
+    # High contrast edges often indicate text or non-cellular structures
+    gray = np.mean(img_array, axis=2)
+    
+    # Calculate edge density using simple gradient
+    grad_x = np.abs(np.diff(gray, axis=1))
+    grad_y = np.abs(np.diff(gray, axis=0))
+    
+    # High edge density suggests text or geometric patterns
+    edge_density_x = np.mean(grad_x > 30)
+    edge_density_y = np.mean(grad_y > 30)
+    
+    if edge_density_x > 0.15 or edge_density_y > 0.15:
+        return False
+    
+    # 6. Check for cellular-like structures
+    # Blood smears should have moderate texture variation (cellular structures)
+    texture_variance = np.var(gray)
+    if texture_variance < 100:  # Too uniform, likely not cellular
+        return False
+    if texture_variance > 2000:  # Too chaotic, likely not blood smear
+        return False
+    
+    # 7. Color range validation for medical staining
+    # Blood smears typically have specific color ranges due to Wright-Giemsa staining
+    
+    # Check for presence of purple/blue tones (nuclei staining)
+    purple_blue_pixels = np.sum((b_channel > r_channel) & (b_channel > g_channel))
+    total_pixels = img_array.shape[0] * img_array.shape[1]
+    purple_blue_ratio = purple_blue_pixels / total_pixels
+    
+    # Check for presence of pink/red tones (cytoplasm/RBC staining)
+    pink_red_pixels = np.sum((r_channel > b_channel) & (r_channel >= g_channel))
+    pink_red_ratio = pink_red_pixels / total_pixels
+    
+    # Blood smears should have both nuclear (blue/purple) and cytoplasmic (pink/red) staining
+    if purple_blue_ratio < 0.05 or pink_red_ratio < 0.1:
+        return False
+    
+    # 8. Reject images with characteristics of common non-medical images
+    
+    # Check for sky-like colors (high blue with low variation)
+    if b_mean > 180 and b_std < 30 and r_mean < 150 and g_mean < 150:
+        return False
+    
+    # Check for vegetation-like colors (high green dominance)
+    if g_mean > r_mean * 1.3 and g_mean > b_mean * 1.3:
+        return False
+    
+    # Check for skin-like uniform colors
+    if (150 < r_mean < 220 and 120 < g_mean < 180 and 100 < b_mean < 160 and 
+        r_std < 25 and g_std < 25 and b_std < 25):
+        return False
+    
+    # 9. Final validation - check for reasonable cellular density
+    # Use simple thresholding to estimate cellular structures
+    binary_thresh = np.mean(gray) - np.std(gray) * 0.5
+    cellular_regions = gray < binary_thresh
+    cellular_density = np.sum(cellular_regions) / total_pixels
+    
+    # Should have reasonable cellular content (not too sparse, not too dense)
+    if cellular_density < 0.1 or cellular_density > 0.8:
+        return False
+    
+    # If all checks pass, likely a blood smear image
     return True
 
 # Function to initialize the model
@@ -115,7 +203,6 @@ def main():
     # Developer Credits with dx.anx platform information + UPDATED CONTACT
     st.markdown("---")
     st.markdown("**🏢 Developed by [Shawred Analytics](https://www.shawredanalytics.com) | 📧 shawred.analytics@gmail.com | Part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)**")
-    st.markdown("*Advanced image-based diagnostics powered by state-of-the-art machine learning algorithms*")
     st.markdown("*With contributions from: Pavan Kumar Didde, Shaik Zuber, Ritabrata Dey, Patrika Chatterjee, Titli Paul, Sumit Mitra*")
     
     st.error("🚨 **IMPORTANT LIMITATION NOTICE**")
@@ -161,75 +248,151 @@ def main():
             is_valid_image = validate_blood_smear_image(image)
             
             if not is_valid_image:
-                st.error("⚠️ **Image Rejected for Analysis**")
-                st.markdown("**Your image was rejected for the following possible reasons:**")
+                st.error("🚫 **Image Rejected: Not a Blood Smear**")
+                st.markdown("**This image does not resemble blood smear architecture and has been rejected for analysis.**")
                 
-                # Get image dimensions for specific feedback
+                # Get image dimensions and properties for specific feedback
                 img_width, img_height = image.size
+                img_array = np.array(image)
                 
-                # Check specific rejection criteria and provide explanations
+                # Provide detailed rejection analysis
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown("### 🚫 **Possible Rejection Reasons:**")
+                    st.markdown("### ❌ **Rejection Analysis:**")
                     
-                    # Check dimension issues
-                    if img_width < 10 or img_height < 10:
-                        st.error(f"❌ **Image too small**: {img_width}x{img_height} pixels (minimum: 10x10)")
-                    else:
-                        st.success(f"✅ **Size acceptable**: {img_width}x{img_height} pixels")
+                    # Check specific rejection criteria
+                    rejection_reasons = []
                     
-                    # Check for corrupted images
-                    img_array = np.array(image)
+                    # 1. Size check
+                    if img_width < 50 or img_height < 50:
+                        rejection_reasons.append(f"**Image too small**: {img_width}x{img_height} pixels (minimum: 50x50)")
+                    
+                    # 2. Format check
+                    if len(img_array.shape) != 3 or img_array.shape[2] != 3:
+                        rejection_reasons.append("**Invalid format**: Not RGB color image")
+                    
+                    # 3. Corruption check
                     if len(img_array.shape) >= 2:
                         max_val = np.max(img_array)
                         min_val = np.min(img_array)
                         
-                        if max_val < 5:
-                            st.error("❌ **Completely black image** (possibly corrupted)")
-                        elif min_val > 250:
-                            st.error("❌ **Completely white image** (possibly corrupted)")
-                        else:
-                            st.success("✅ **Image data looks valid**")
+                        if max_val < 10:
+                            rejection_reasons.append("**Completely black image** (corrupted)")
+                        elif min_val > 245:
+                            rejection_reasons.append("**Completely white image** (corrupted)")
+                    
+                    # 4. Color variation check
+                    if len(img_array.shape) == 3:
+                        if np.std(img_array) < 15:
+                            rejection_reasons.append("**Single color dominance** (not cellular)")
+                        
+                        # Color channel analysis
+                        r_mean = np.mean(img_array[:, :, 0])
+                        g_mean = np.mean(img_array[:, :, 1])
+                        b_mean = np.mean(img_array[:, :, 2])
+                        
+                        # Grayscale check
+                        if abs(r_mean - g_mean) < 5 and abs(g_mean - b_mean) < 5:
+                            rejection_reasons.append("**Grayscale image** (blood smears need color staining)")
+                        
+                        # Extreme color bias
+                        total_mean = (r_mean + g_mean + b_mean) / 3
+                        if (r_mean > total_mean * 1.5 or g_mean > total_mean * 1.5 or b_mean > total_mean * 1.5):
+                            rejection_reasons.append("**Extreme color bias** (not medical staining)")
+                        
+                        # Sky-like colors
+                        if b_mean > 180 and np.std(img_array[:, :, 2]) < 30 and r_mean < 150 and g_mean < 150:
+                            rejection_reasons.append("**Sky-like colors** (outdoor/landscape image)")
+                        
+                        # Vegetation colors
+                        if g_mean > r_mean * 1.3 and g_mean > b_mean * 1.3:
+                            rejection_reasons.append("**Vegetation colors** (nature/plant image)")
+                        
+                        # Skin-like colors
+                        r_std, g_std, b_std = np.std(img_array[:, :, 0]), np.std(img_array[:, :, 1]), np.std(img_array[:, :, 2])
+                        if (150 < r_mean < 220 and 120 < g_mean < 180 and 100 < b_mean < 160 and 
+                            r_std < 25 and g_std < 25 and b_std < 25):
+                            rejection_reasons.append("**Uniform skin tones** (portrait/selfie image)")
+                    
+                    # 5. Texture analysis
+                    if len(img_array.shape) == 3:
+                        gray = np.mean(img_array, axis=2)
+                        texture_variance = np.var(gray)
+                        
+                        if texture_variance < 100:
+                            rejection_reasons.append("**Too uniform texture** (not cellular structures)")
+                        elif texture_variance > 2000:
+                            rejection_reasons.append("**Too chaotic texture** (not blood smear pattern)")
+                        
+                        # Edge density (text detection)
+                        grad_x = np.abs(np.diff(gray, axis=1))
+                        grad_y = np.abs(np.diff(gray, axis=0))
+                        edge_density_x = np.mean(grad_x > 30)
+                        edge_density_y = np.mean(grad_y > 30)
+                        
+                        if edge_density_x > 0.15 or edge_density_y > 0.15:
+                            rejection_reasons.append("**High edge density** (text/document/screenshot)")
+                    
+                    # 6. Medical staining validation
+                    if len(img_array.shape) == 3:
+                        b_channel = img_array[:, :, 2].astype(float)
+                        r_channel = img_array[:, :, 0].astype(float)
+                        g_channel = img_array[:, :, 1].astype(float)
+                        
+                        # Check for medical staining colors
+                        purple_blue_pixels = np.sum((b_channel > r_channel) & (b_channel > g_channel))
+                        pink_red_pixels = np.sum((r_channel > b_channel) & (r_channel >= g_channel))
+                        total_pixels = img_array.shape[0] * img_array.shape[1]
+                        
+                        purple_blue_ratio = purple_blue_pixels / total_pixels
+                        pink_red_ratio = pink_red_pixels / total_pixels
+                        
+                        if purple_blue_ratio < 0.05:
+                            rejection_reasons.append("**Missing nuclear staining** (no blue/purple tones)")
+                        if pink_red_ratio < 0.1:
+                            rejection_reasons.append("**Missing cytoplasmic staining** (no pink/red tones)")
+                    
+                    # Display rejection reasons
+                    if rejection_reasons:
+                        for reason in rejection_reasons[:5]:  # Show max 5 reasons
+                            st.error(f"• {reason}")
+                        if len(rejection_reasons) > 5:
+                            st.info(f"... and {len(rejection_reasons) - 5} more issues detected")
                     else:
-                        st.success("✅ **Image format acceptable**")
+                        st.error("• **General validation failure** (multiple criteria not met)")
                 
                 with col2:
-                    st.markdown("### ✅ **Acceptable Image Specifications:**")
+                    st.markdown("### ✅ **Required Image Characteristics:**")
+                    st.success("**Blood smear images should have:**")
                     st.markdown("""
-                    **📏 Dimensions:**
-                    - Minimum: 10x10 pixels (extremely permissive)
-                    - Recommended: ≥100x100 pixels
-                    - Maximum: No limit
+                    - **Cellular structures**: Visible individual cells
+                    - **Medical staining**: Wright-Giemsa or similar staining
+                    - **Color variation**: Purple/blue nuclei, pink/red cytoplasm
+                    - **Appropriate resolution**: At least 50x50 pixels
+                    - **Microscopic appearance**: Typical blood smear morphology
+                    - **No text or graphics**: Pure microscopic image
+                    """)
                     
-                    **🎨 Color Requirements:**
-                    - Any color profile accepted
-                    - All image types welcome:
-                      - Medical/microscopy images
-                      - Regular photographs
-                      - Scanned documents
-                      - Digital artwork
-                    - No color restrictions
+                    st.info("**Accepted image types:**")
+                    st.markdown("""
+                    ✅ **Microscopic blood smear images**  
+                    ✅ **Wright-Giemsa stained preparations**  
+                    ✅ **Peripheral blood smears**  
+                    ✅ **Bone marrow aspirate smears**  
+                    """)
                     
-                    **🔬 Image Characteristics:**
-                    - Any image content accepted
-                    - All magnifications and qualities
-                    - Any lighting conditions
-                    - Any background types
-                    
-                    **📁 File Formats:**
-                    - JPG/JPEG
-                    - PNG
-                    - File size: No limit
-                    
-                    **⚠️ Only Rejected:**
-                    - Images smaller than 10x10 pixels
-                    - Completely black images (corrupted)
-                    - Completely white images (corrupted)
+                    st.warning("**Rejected image types:**")
+                    st.markdown("""
+                    ❌ **Photos of people, objects, landscapes**  
+                    ❌ **Screenshots, documents, text images**  
+                    ❌ **X-rays, CT scans, MRI images**  
+                    ❌ **Gross pathology specimens**  
+                    ❌ **Non-medical images of any kind**  
                     """)
                 
                 st.markdown("---")
-                st.info("💡 **Tip**: The system now accepts virtually any image format and type. Only extremely small (less than 10x10 pixels) or completely corrupted images will be rejected. You can upload medical images, photographs, scanned documents, or any other image type for analysis.")
+                st.info("💡 **Tip**: Please upload a genuine microscopic blood smear image with proper medical staining. The system now uses strict validation to ensure only appropriate medical images are analyzed for accurate leukemia detection.")
                 
                 # Exit the prediction flow for invalid images
                 return
@@ -686,6 +849,117 @@ GoogLeNet(
         - Presence of Auer rods or other abnormal inclusions
         
         **Important:** This tool is for educational purposes only and should not replace professional medical diagnosis.
+        """)
+        
+        st.markdown("---")
+        st.markdown("### 🩸 **Types of Leukemia Cells Observed in Blood Smears**")
+        
+        st.markdown("#### **🔴 Acute Leukemia Cells:**")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**Acute Lymphoblastic Leukemia (ALL):**")
+            st.markdown("""
+            - **Lymphoblasts**: Immature lymphoid cells
+            - **Size**: Small to medium (10-18 μm)
+            - **Nucleus**: Round, fine chromatin, prominent nucleoli
+            - **Cytoplasm**: Scanty, basophilic, may contain vacuoles
+            - **Special Features**: 
+              - L1: Small, uniform blasts
+              - L2: Larger, heterogeneous blasts
+              - L3: Large blasts with prominent vacuoles
+            """)
+            
+        with col2:
+            st.markdown("**Acute Myeloid Leukemia (AML):**")
+            st.markdown("""
+            - **Myeloblasts**: Immature myeloid cells
+            - **Size**: Medium to large (15-25 μm)
+            - **Nucleus**: Round to oval, fine chromatin, 2-4 nucleoli
+            - **Cytoplasm**: Moderate, may contain granules
+            - **Special Features**:
+              - **Auer Rods**: Pathognomonic rod-shaped inclusions
+              - **Granules**: Azurophilic granules present
+              - **Variants**: M0-M7 subtypes with distinct features
+            """)
+        
+        st.markdown("#### **🟡 Chronic Leukemia Cells:**")
+        
+        col3, col4 = st.columns(2)
+        
+        with col3:
+            st.markdown("**Chronic Lymphocytic Leukemia (CLL):**")
+            st.markdown("""
+            - **Mature Lymphocytes**: Small, mature-appearing
+            - **Size**: 7-10 μm (similar to normal lymphocytes)
+            - **Nucleus**: Dense, clumped chromatin
+            - **Cytoplasm**: Scanty, pale blue
+            - **Special Features**:
+              - **Smudge Cells**: Fragile cells that rupture easily
+              - **Prolymphocytes**: <10% larger cells with nucleoli
+              - **Monoclonal**: Single clone proliferation
+            """)
+            
+        with col4:
+            st.markdown("**Chronic Myeloid Leukemia (CML):**")
+            st.markdown("""
+            - **Myeloid Spectrum**: All stages of granulocyte maturation
+            - **Blasts**: <5% in chronic phase
+            - **Promyelocytes**: Increased numbers
+            - **Myelocytes & Metamyelocytes**: Prominent
+            - **Special Features**:
+              - **Left Shift**: Immature cells in circulation
+              - **Basophilia**: Increased basophils
+              - **Philadelphia Chromosome**: t(9;22) translocation
+            """)
+        
+        st.markdown("#### **🔵 Specific Cell Types the AI Detects:**")
+        
+        st.markdown("""
+        **🎯 Primary Detection Targets:**
+        
+        1. **Blast Cells (>20% indicates acute leukemia)**
+           - Lymphoblasts (ALL)
+           - Myeloblasts (AML)
+           - Monoblasts (acute monocytic leukemia)
+           
+        2. **Abnormal Mature Cells**
+           - Atypical lymphocytes (CLL)
+           - Immature granulocytes (CML)
+           - Hairy cells (hairy cell leukemia)
+           
+        3. **Pathognomonic Features**
+           - **Auer Rods**: Crystalline inclusions in AML
+           - **Smudge Cells**: Fragile lymphocytes in CLL
+           - **Flower Cells**: Multilobed nuclei in ATLL
+           
+        4. **Nuclear Abnormalities**
+           - Irregular nuclear contours
+           - Multiple nucleoli
+           - Abnormal chromatin patterns
+           - Nuclear-cytoplasmic asynchrony
+           
+        5. **Cytoplasmic Features**
+           - Abnormal granulation
+           - Vacuolation patterns
+           - Unusual inclusions
+           - Color and texture variations
+        """)
+        
+        st.markdown("#### **⚠️ Clinical Significance:**")
+        
+        st.info("""
+        **🔬 Diagnostic Thresholds:**
+        - **Acute Leukemia**: ≥20% blasts in bone marrow or blood
+        - **Chronic Leukemia**: <20% blasts but abnormal mature cells
+        - **Normal Range**: <5% blasts in healthy individuals
+        
+        **📊 AI Model Training:**
+        - Trained on 18,000+ annotated blood smear images
+        - Recognizes subtle morphological variations
+        - Detects patterns invisible to untrained observers
+        - Provides probability scores for clinical correlation
         """)
         
         st.markdown("---")
