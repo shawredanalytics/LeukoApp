@@ -207,6 +207,14 @@ def main():
             
             # Only proceed with valid blood smear images
             
+            # Check for low-resolution images and show disclaimer
+            image_width, image_height = image.size
+            is_low_resolution = image_width < 200 or image_height < 200
+            
+            if is_low_resolution:
+                st.warning("📏 **Low Resolution Image Detected**")
+                st.info(f"Image resolution: {image_width}x{image_height} pixels. For optimal accuracy, higher resolution images (≥200x200) are recommended. Results may be less reliable with low-resolution images.")
+            
             # Preprocess the image
             preprocess = transforms.Compose([
                 transforms.Resize(256),
@@ -252,6 +260,17 @@ def main():
                 st.warning("⚠️ Potential leukemia indicators detected. Please consult with a healthcare professional.")
             else:
                 st.success("✅ No significant leukemia indicators detected.")
+            
+            # Additional disclaimer for low-resolution images
+            if is_low_resolution:
+                st.markdown("---")
+                st.warning("⚠️ **Important Note for Low-Resolution Images:**")
+                st.markdown("""
+                - The prediction accuracy may be reduced due to low image resolution
+                - Fine cellular details may not be clearly visible for analysis
+                - Consider using a higher resolution image for more reliable results
+                - Always consult with a healthcare professional for medical diagnosis
+                """)
                 
             # Debug information
             if show_debug:
