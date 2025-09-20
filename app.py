@@ -34,6 +34,9 @@ def validate_blood_smear_image(image):
     # Convert to numpy array
     img_array = np.array(image)
     
+    # Debug logging for troubleshooting
+    debug_info = []
+    
     # 1. Basic dimension and format checks
     if image.width < 50 or image.height < 50:
         return False
@@ -107,7 +110,8 @@ def validate_blood_smear_image(image):
     pink_red_ratio = pink_red_pixels / total_pixels
     
     # Blood smears should have both nuclear (blue/purple) and cytoplasmic (pink/red) staining
-    if purple_blue_ratio < 0.05 or pink_red_ratio < 0.1:
+    # Relaxed thresholds to accommodate different staining intensities
+    if purple_blue_ratio < 0.02 or pink_red_ratio < 0.05:
         return False
     
     # 8. Reject images with characteristics of common non-medical images
@@ -128,12 +132,14 @@ def validate_blood_smear_image(image):
     color_saturation = (max_channel - min_channel) / max_channel if max_channel > 0 else 0
     
     # Wildlife images often have high color saturation and bright colors
-    if color_saturation > 0.4 and max_channel > 150:
+    # Relaxed threshold to allow medical staining while rejecting wildlife
+    if color_saturation > 0.6 and max_channel > 180:
         return False
     
     # Check for outdoor lighting patterns (bright, high-contrast natural lighting)
     brightness_range = np.max(img_array) - np.min(img_array)
-    if brightness_range > 200 and np.mean(img_array) > 120:
+    # Relaxed threshold to allow medical contrast while rejecting outdoor photos
+    if brightness_range > 230 and np.mean(img_array) > 140:
         return False
     
     # Check for animal fur/feather patterns (high local contrast with organized patterns)
@@ -144,9 +150,10 @@ def validate_blood_smear_image(image):
     
     # Check for natural color combinations typical of birds/animals
     # Birds often have combinations of blues, oranges, yellows, browns
-    if ((b_mean > r_mean * 1.2 and b_mean > 100) or  # Blue dominance (blue birds, sky)
-        (r_mean > 180 and g_mean > 120 and b_mean < 100) or  # Orange/red colors (bird beaks, feathers)
-        (r_mean > 150 and g_mean > 150 and b_mean < 120)):  # Yellow/brown colors (bird bodies)
+    # More restrictive checks to avoid rejecting purple-stained blood cells
+    if ((b_mean > r_mean * 1.4 and b_mean > 120 and g_mean < 80) or  # Strong blue dominance (sky/bright blue birds)
+        (r_mean > 200 and g_mean > 140 and b_mean < 80) or  # Bright orange/red colors (bird beaks, feathers)
+        (r_mean > 180 and g_mean > 180 and b_mean < 100 and color_saturation > 0.5)):  # Bright yellow/brown colors
         return False
     
     # Check for skin-like uniform colors
