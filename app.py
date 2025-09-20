@@ -194,14 +194,22 @@ def make_prediction(model, device, img_tensor, temperature: float = DEFAULT_TEMP
             if isinstance(output, (tuple, list)):
                 output = output[0]
 
+            # 🔹 Apply temperature scaling
             probs = torch.softmax(output / temperature, dim=1)
+
+            # Predicted class
             conf, pred = torch.max(probs, dim=1)
 
+            # Convert to numpy
             all_probs = probs[0].cpu().numpy()
+
+            # 🔹 Clip to avoid 100% probabilities
+            all_probs = np.clip(all_probs, 0.01, 0.99)
             all_probs = all_probs / all_probs.sum()
 
+            # Confidence capped at 90%
             conf = float(all_probs[pred.item()])
-            conf = min(conf, 0.95)
+            conf = min(conf, 0.90)
 
         return int(pred.item()), conf, all_probs
     except Exception as e:
