@@ -4,20 +4,27 @@ from torchvision.models import googlenet, GoogLeNet_Weights
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance
-from streamlit_option_menu import option_menu
 import os
 import logging
 import sys
 import numpy as np
 from collections import OrderedDict
 
-# Optional OpenCV import for advanced screen capture features
+# Optional imports with fallbacks
+HAS_OPENCV = False
+HAS_OPTION_MENU = False
+
 try:
     import cv2
     HAS_OPENCV = True
 except ImportError:
-    HAS_OPENCV = False
-    st.warning("⚠️ OpenCV not available - using basic image processing. For enhanced screen capture support, install opencv-python")
+    pass
+
+try:
+    from streamlit_option_menu import option_menu
+    HAS_OPTION_MENU = True
+except ImportError:
+    pass
 
 # ----------------- LOGGING SETUP -----------------
 logging.basicConfig(
@@ -631,6 +638,10 @@ def main():
         page_icon="🩸",
         layout="wide"
     )
+    
+    # Show OpenCV status after Streamlit is initialized
+    if not HAS_OPENCV:
+        st.sidebar.info("ℹ️ Basic image processing active. Install opencv-python for enhanced screen capture support.")
     
     st.title("🩸 LeukoApp - Blood Cancer Prediction")
     st.markdown("*AI-powered blood smear analysis for educational purposes*")
