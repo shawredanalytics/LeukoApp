@@ -112,12 +112,41 @@ def validate_blood_smear_image(image):
     
     # 8. Reject images with characteristics of common non-medical images
     
-    # Check for sky-like colors (high blue with low variation)
-    if b_mean > 180 and b_std < 30 and r_mean < 150 and g_mean < 150:
+    # Check for sky-like colors (high blue with low variation) - Enhanced detection
+    if (b_mean > 150 and b_std < 50 and r_mean < 180 and g_mean < 180) or \
+       (b_mean > 180 and b_std < 30 and r_mean < 150 and g_mean < 150):
         return False
     
     # Check for vegetation-like colors (high green dominance)
     if g_mean > r_mean * 1.3 and g_mean > b_mean * 1.3:
+        return False
+    
+    # Enhanced wildlife/nature image detection
+    # Check for bright, saturated colors typical of wildlife photography
+    max_channel = max(r_mean, g_mean, b_mean)
+    min_channel = min(r_mean, g_mean, b_mean)
+    color_saturation = (max_channel - min_channel) / max_channel if max_channel > 0 else 0
+    
+    # Wildlife images often have high color saturation and bright colors
+    if color_saturation > 0.4 and max_channel > 150:
+        return False
+    
+    # Check for outdoor lighting patterns (bright, high-contrast natural lighting)
+    brightness_range = np.max(img_array) - np.min(img_array)
+    if brightness_range > 200 and np.mean(img_array) > 120:
+        return False
+    
+    # Check for animal fur/feather patterns (high local contrast with organized patterns)
+    # Calculate local contrast using a simple method
+    local_contrast = np.std(grad_x) + np.std(grad_y)
+    if local_contrast > 15 and texture_variance > 800:
+        return False
+    
+    # Check for natural color combinations typical of birds/animals
+    # Birds often have combinations of blues, oranges, yellows, browns
+    if ((b_mean > r_mean * 1.2 and b_mean > 100) or  # Blue dominance (blue birds, sky)
+        (r_mean > 180 and g_mean > 120 and b_mean < 100) or  # Orange/red colors (bird beaks, feathers)
+        (r_mean > 150 and g_mean > 150 and b_mean < 120)):  # Yellow/brown colors (bird bodies)
         return False
     
     # Check for skin-like uniform colors
@@ -434,13 +463,33 @@ def main():
                         if (r_mean > total_mean * 1.5 or g_mean > total_mean * 1.5 or b_mean > total_mean * 1.5):
                             rejection_reasons.append("**Extreme color bias** (not medical staining)")
                         
-                        # Sky-like colors
-                        if b_mean > 180 and np.std(img_array[:, :, 2]) < 30 and r_mean < 150 and g_mean < 150:
+                        # Sky-like colors - Enhanced detection
+                        if ((b_mean > 150 and np.std(img_array[:, :, 2]) < 50 and r_mean < 180 and g_mean < 180) or
+                            (b_mean > 180 and np.std(img_array[:, :, 2]) < 30 and r_mean < 150 and g_mean < 150)):
                             rejection_reasons.append("**Sky-like colors** (outdoor/landscape image)")
                         
                         # Vegetation colors
                         if g_mean > r_mean * 1.3 and g_mean > b_mean * 1.3:
                             rejection_reasons.append("**Vegetation colors** (nature/plant image)")
+                        
+                        # Wildlife/nature image detection
+                        max_channel = max(r_mean, g_mean, b_mean)
+                        min_channel = min(r_mean, g_mean, b_mean)
+                        color_saturation = (max_channel - min_channel) / max_channel if max_channel > 0 else 0
+                        
+                        if color_saturation > 0.4 and max_channel > 150:
+                            rejection_reasons.append("**High color saturation** (wildlife/nature photography)")
+                        
+                        # Check for natural color combinations typical of birds/animals
+                        if ((b_mean > r_mean * 1.2 and b_mean > 100) or
+                            (r_mean > 180 and g_mean > 120 and b_mean < 100) or
+                            (r_mean > 150 and g_mean > 150 and b_mean < 120)):
+                            rejection_reasons.append("**Natural animal colors** (bird/wildlife image)")
+                        
+                        # Check for outdoor lighting patterns
+                        brightness_range = np.max(img_array) - np.min(img_array)
+                        if brightness_range > 200 and np.mean(img_array) > 120:
+                            rejection_reasons.append("**Outdoor lighting patterns** (natural photography)")
                         
                         # Skin-like colors
                         r_std, g_std, b_std = np.std(img_array[:, :, 0]), np.std(img_array[:, :, 1]), np.std(img_array[:, :, 2])
@@ -518,6 +567,8 @@ def main():
                     st.warning("**Rejected image types:**")
                     st.markdown("""
                     ❌ **Photos of people, objects, landscapes**  
+                    ❌ **Wildlife/animal photos (birds, mammals, etc.)**  
+                    ❌ **Nature photography (outdoor scenes, plants)**  
                     ❌ **Screenshots, documents, text images**  
                     ❌ **X-rays, CT scans, MRI images**  
                     ❌ **Gross pathology specimens**  
