@@ -89,19 +89,55 @@ def initialize_model(model_path: str = MODEL_PATH):
 # ----------------- IMAGE VALIDATION -----------------
 def validate_image(uploaded_file) -> bool:
     try:
-        file_size = len(uploaded_file.getbuffer())
+        # Reset file pointer to beginning
+        uploaded_file.seek(0)
+        
+        # Get file size
+        file_content = uploaded_file.getbuffer()
+        file_size = len(file_content)
+        
+        if file_size == 0:
+            st.error("🚨 Empty file detected. Please try uploading again.")
+            return False
+            
         if file_size > MAX_FILE_SIZE:
-            st.error("🚨 File size too large. Please upload <10MB.")
+            st.error(f"🚨 File size too large ({file_size/1024/1024:.1f}MB). Please upload <10MB.")
             return False
 
-        allowed_types = {"image/jpeg", "image/jpg", "image/png"}
-        if (uploaded_file.type not in allowed_types and
-            not uploaded_file.name.lower().endswith((".jpg", ".jpeg", ".png"))):
-            st.error("🚨 Invalid type. Only JPG/JPEG/PNG allowed.")
+        # More flexible file type checking for mobile
+        allowed_extensions = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"}
+        allowed_mime_types = {"image/jpeg", "image/jpg", "image/png"}
+        
+        file_extension = None
+        if hasattr(uploaded_file, 'name') and uploaded_file.name:
+            file_extension = os.path.splitext(uploaded_file.name.lower())[1]
+        
+        mime_type = getattr(uploaded_file, 'type', None)
+        
+        # Check both extension and MIME type (mobile cameras sometimes have inconsistent MIME types)
+        valid_extension = file_extension in {".jpg", ".jpeg", ".png"} if file_extension else False
+        valid_mime = mime_type in allowed_mime_types if mime_type else False
+        
+        if not (valid_extension or valid_mime):
+            st.error(f"🚨 Invalid file type. Found: {mime_type or 'unknown'}, Extension: {file_extension or 'unknown'}. Only JPG/JPEG/PNG allowed.")
             return False
+            
+        # Try to open image to verify it's actually an image
+        try:
+            uploaded_file.seek(0)
+            test_img = Image.open(uploaded_file)
+            test_img.verify()  # Verify it's a valid image
+        except Exception as e:
+            st.error(f"🚨 Invalid or corrupted image file: {str(e)}")
+            return False
+        finally:
+            uploaded_file.seek(0)  # Reset for further processing
+        
         return True
+        
     except Exception as e:
         st.error(f"🚨 Error validating image: {e}")
+        logger.exception("Image validation failed")
         return False
 
 def is_blood_smear(img: Image.Image, filename: str = "unknown"):
@@ -159,37 +195,75 @@ def is_blood_smear(img: Image.Image, filename: str = "unknown"):
 # ----------------- IMAGE PREPROCESSING -----------------
 def preprocess_image(uploaded_file):
     try:
+        # Enhanced validation
         if not validate_image(uploaded_file):
             return None
 
+        # Ensure we're at the beginning of the file
         uploaded_file.seek(0)
-        img = Image.open(uploaded_file)
+        
+        # Try to open the image with better error handling
+        try:
+            img = Image.open(uploaded_file)
+            # Load the image data immediately to avoid lazy loading issues
+            img.load()
+        except Exception as e:
+            st.error(f"🚨 Failed to open image: {str(e)}. Please try uploading again.")
+            logger.error(f"Image opening failed: {e}")
+            return None
 
-        # Handle mobile phone rotation metadata
-        img = ImageOps.exif_transpose(img)
+        # Handle mobile phone rotation metadata (EXIF orientation)
+        try:
+            img = ImageOps.exif_transpose(img)
+        except Exception as e:
+            logger.warning(f"EXIF orientation handling failed: {e}")
+            # Continue without EXIF correction if it fails
 
+        # Convert to RGB if needed
         if img.mode != "RGB":
-            img = img.convert("RGB")
+            try:
+                img = img.convert("RGB")
+            except Exception as e:
+                st.error(f"🚨 Failed to convert image to RGB: {str(e)}")
+                return None
+
+        # Log image properties for debugging
+        logger.info(f"Image processed: Size={img.size}, Mode={img.mode}, Format={getattr(img, 'format', 'Unknown')}")
 
         # Validate blood smear with filename
-        ok, reason = is_blood_smear(img, uploaded_file.name)
+        filename = getattr(uploaded_file, 'name', 'unknown_file')
+        ok, reason = is_blood_smear(img, filename)
         if not ok:
             st.error(f"🚨 Image does not meet specifications of the test model\n\n**Reason:** {reason}")
             return None
         elif reason:
             st.warning(f"⚠️ Note: {reason}")
 
-        # Improved preprocessing with histogram equalization option
-        transform = transforms.Compose([
-            transforms.Resize(IMAGE_SIZE),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
-        tensor = transform(img).unsqueeze(0)
-        return tensor
+        # Enhanced preprocessing
+        try:
+            transform = transforms.Compose([
+                transforms.Resize(IMAGE_SIZE, interpolation=transforms.InterpolationMode.BILINEAR),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ])
+            tensor = transform(img).unsqueeze(0)
+            
+            # Verify tensor is valid
+            if torch.isnan(tensor).any() or torch.isinf(tensor).any():
+                st.error("🚨 Image processing resulted in invalid data. Please try a different image.")
+                return None
+                
+            logger.info(f"Tensor created successfully: Shape={tensor.shape}")
+            return tensor
+            
+        except Exception as e:
+            st.error(f"🚨 Error during image transformation: {str(e)}")
+            logger.exception("Image transformation failed")
+            return None
         
     except Exception as e:
         st.error(f"🚨 Error processing image: {e}")
+        logger.exception("Image preprocessing failed")
         return None
 
 # ----------------- PREDICTION WITH BIAS CORRECTION -----------------
@@ -411,43 +485,95 @@ def main():
         st.info("ℹ️ **Instructions:** Upload a clear blood smear microscopy image. " +
                 "Ensure good lighting, focus, and proper staining for best results.")
 
+        # Enhanced file uploader for mobile compatibility
         uploaded = st.file_uploader(
             "Choose a blood smear image", 
             type=["jpg", "jpeg", "png"],
-            help="Supported formats: JPG, JPEG, PNG (max 10MB)"
+            help="📱 Mobile users: Use camera or select from gallery. Supported formats: JPG, JPEG, PNG (max 10MB)",
+            accept_multiple_files=False,
+            key="blood_smear_uploader"
         )
         
+        # Mobile-specific upload tips
+        with st.expander("📱 Mobile Upload Tips"):
+            st.markdown("""
+            **Having trouble uploading from mobile?**
+            
+            **📸 Camera Issues:**
+            - Try taking photo first, then upload from gallery
+            - Ensure good lighting and steady hands
+            - Allow browser camera permissions if prompted
+            
+            **📁 Gallery Issues:**
+            - Wait for image to fully load before selecting
+            - Try refreshing the page if upload stalls
+            - Check image file size (should be < 10MB)
+            
+            **🔧 Technical Issues:**
+            - Clear browser cache if uploads fail repeatedly
+            - Try switching between WiFi and mobile data
+            - Use Chrome or Safari for best mobile compatibility
+            """)
+        
         if uploaded:
-            # Display uploaded image
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                st.image(uploaded, caption="Uploaded Image", use_container_width=True)
+            # Status indicator for upload success
+            st.success("✅ Image uploaded successfully!")
             
-            with col2:
-                st.write("**File Info:**")
-                st.write(f"• Name: {uploaded.name}")
-                st.write(f"• Size: {len(uploaded.getbuffer())/1024:.1f} KB")
-                st.write(f"• Type: {uploaded.type}")
+            # Display uploaded image with loading indicator
+            try:
+                # Display uploaded image
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    st.image(uploaded, caption="Uploaded Image", use_container_width=True)
+                
+                with col2:
+                    st.write("**File Info:**")
+                    st.write(f"• Name: {uploaded.name}")
+                    st.write(f"• Size: {len(uploaded.getbuffer())/1024:.1f} KB")
+                    st.write(f"• Type: {uploaded.type}")
+                    
+                    # Add refresh button for mobile issues
+                    if st.button("🔄 Reprocess Image", help="Click if image appears corrupted"):
+                        st.rerun()
             
-            # Process image
-            tensor = preprocess_image(uploaded)
-            if tensor is None:
-                st.stop()
+            except Exception as e:
+                st.error(f"🚨 Error displaying image: {str(e)}")
+                st.info("💡 Try refreshing the page or uploading a different image.")
+                return
+            
+            # Process image with better error handling
+            try:
+                with st.spinner("📱 Processing mobile image..."):
+                    tensor = preprocess_image(uploaded)
+                    
+                if tensor is None:
+                    st.error("🚨 Image processing failed. Please try:")
+                    st.write("• Taking a new photo with better lighting")
+                    st.write("• Uploading from gallery instead of camera")
+                    st.write("• Refreshing the page and trying again")
+                    return
 
-            # Make prediction
-            with st.spinner("🔍 Analyzing blood smear..."):
-                pred, conf, probs = make_prediction(model, device, tensor, temperature=temp_value)
-                
-            if pred is not None:
-                display_results(pred, conf, probs)
-                
-                # Debug information
-                if show_debug:
-                    with st.expander("🔧 Debug Information"):
-                        st.write(f"**Device:** {device}")
-                        st.write(f"**Temperature:** {temp_value}")
-                        st.write(f"**Image tensor shape:** {tensor.shape}")
-                        st.write(f"**Raw probabilities:** {probs}")
+                # Make prediction with mobile-optimized feedback
+                with st.spinner("🔍 Analyzing blood smear..."):
+                    pred, conf, probs = make_prediction(model, device, tensor, temperature=temp_value)
+                    
+                if pred is not None:
+                    display_results(pred, conf, probs)
+                    
+                    # Debug information
+                    if show_debug:
+                        with st.expander("🔧 Debug Information"):
+                            st.write(f"**Device:** {device}")
+                            st.write(f"**Temperature:** {temp_value}")
+                            st.write(f"**Image tensor shape:** {tensor.shape}")
+                            st.write(f"**Raw probabilities:** {probs}")
+                else:
+                    st.error("🚨 Prediction failed. Please try uploading a different image.")
+                    
+            except Exception as e:
+                st.error(f"🚨 Processing error: {str(e)}")
+                st.info("💡 This might be a mobile compatibility issue. Try refreshing the page.")
+                logger.exception("Mobile image processing failed")
 
     elif selected == "Model Info":
         st.header("🧠 Model Information")
