@@ -10,6 +10,7 @@ import logging
 import sys
 import numpy as np
 from collections import OrderedDict
+import cv2  # Added for screen capture enhancement
 
 # ----------------- LOGGING SETUP -----------------
 logging.basicConfig(
@@ -140,22 +141,116 @@ def validate_image(uploaded_file) -> bool:
         logger.exception("Image validation failed")
         return False
 
+def enhance_screen_captured_image(img):
+    """
+    Enhance images captured from computer screens with mobile cameras
+    """
+    try:
+        # Convert to numpy array for processing
+        img_array = np.array(img)
+        
+        # Remove moiré patterns using Gaussian blur
+        img_array = cv2.GaussianBlur(img_array, (3, 3), 0.5)
+        
+        # Convert to LAB color space for better processing
+        lab = cv2.cvtColor(img_array, cv2.COLOR_RGB2LAB)
+        l, a, b = cv2.split(lab)
+        
+        # Apply CLAHE (Contrast Limited Adaptive Histogram Equalization) to L channel
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        l = clahe.apply(l)
+        
+        # Merge channels back
+        lab = cv2.merge([l, a, b])
+        enhanced = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
+        
+        # Reduce screen glare/reflection effects
+        # Apply gentle sharpening to counteract screen blur
+        kernel = np.array([[-0.5, -1, -0.5],
+                          [-1, 7, -1],
+                          [-0.5, -1, -0.5]])
+        enhanced = cv2.filter2D(enhanced, -1, kernel)
+        
+        # Ensure values are in valid range
+        enhanced = np.clip(enhanced, 0, 255).astype(np.uint8)
+        
+        # Convert back to PIL Image
+        return Image.fromarray(enhanced)
+        
+    except Exception as e:
+        logger.warning(f"Screen enhancement failed: {e}, using original image")
+        return img
+
+def detect_screen_capture(img):
+    """
+    Detect if image was likely captured from a screen
+    """
+    try:
+        img_array = np.array(img)
+        
+        # Check for common screen capture characteristics
+        
+        # 1. Check brightness uniformity (screens often have more uniform lighting)
+        gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        brightness_std = np.std(gray) / 255.0
+        
+        # 2. Check for rectangular edges (screen borders)
+        edges = cv2.Canny(gray, 50, 150)
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        large_rectangles = 0
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area > 1000:  # Large enough contour
+                # Check if contour is roughly rectangular
+                perimeter = cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
+                if len(approx) >= 4:  # Roughly rectangular
+                    large_rectangles += 1
+        
+        # 3. Check color distribution (screens often have different color profiles)
+        color_variance = np.var(img_array, axis=(0, 1))
+        avg_color_variance = np.mean(color_variance)
+        
+        # Heuristic scoring
+        screen_score = 0
+        if brightness_std < 0.3:  # More uniform brightness
+            screen_score += 1
+        if large_rectangles > 0:  # Has rectangular shapes (screen border)
+            screen_score += 1
+        if avg_color_variance < 2000:  # Less color variation
+            screen_score += 1
+        
+        is_screen_capture = screen_score >= 2
+        
+        logger.info(f"Screen detection: brightness_std={brightness_std:.3f}, rectangles={large_rectangles}, "
+                   f"color_var={avg_color_variance:.1f}, score={screen_score}, is_screen={is_screen_capture}")
+        
+        return is_screen_capture
+        
+    except Exception as e:
+        logger.error(f"Screen detection failed: {e}")
+        return False
 def is_blood_smear(img: Image.Image, filename: str = "unknown"):
     """
     Improved heuristic check for blood smear suitability.
-    More conservative to reduce false positives.
+    Enhanced for screen-captured images with very relaxed thresholds.
     """
     try:
+        # Check if this is a screen capture
+        is_screen = detect_screen_capture(img) if SCREEN_CAPTURE_MODE else False
+        
         img_small = img.resize((128, 128))
         arr = np.array(img_small).astype(float) / 255.0
 
         r, g, b = arr[:, :, 0], arr[:, :, 1], arr[:, :, 2]
 
-        # Color heuristics - improved
-        red_ratio = np.mean(r > 0.4)  # Lowered threshold
-        purple_ratio = np.mean((r > 0.3) & (b > 0.25))  # Lowered thresholds
-        pink_ratio = np.mean((r > 0.5) & (g > 0.3) & (b > 0.3))  # Added pink detection
+        # Color heuristics - very relaxed for screen captures
+        red_ratio = np.mean(r > 0.3)  # Even lower threshold for screen captures
+        purple_ratio = np.mean((r > 0.25) & (b > 0.2))  # Very low thresholds
+        pink_ratio = np.mean((r > 0.4) & (g > 0.25) & (b > 0.25))  # Pink detection
         green_ratio = np.mean(g > 0.5)
+        blue_ratio = np.mean(b > 0.5)
 
         # Combined color ratio for better detection
         total_color_ratio = red_ratio + purple_ratio + pink_ratio
@@ -165,27 +260,61 @@ def is_blood_smear(img: Image.Image, filename: str = "unknown"):
         gx, gy = np.gradient(gray)
         edges = np.sqrt(gx**2 + gy**2)
         edge_var = np.var(edges)
+        
+        # Brightness check (screens can be too bright or too dark)
+        avg_brightness = np.mean(gray)
+        
+        # Screen capture specific adjustments
+        if is_screen:
+            logger.info(f"[{filename}] Screen capture detected - using relaxed validation")
+            # Much more relaxed thresholds for screen captures
+            effective_color_threshold = COLOR_RATIO_THRESHOLD * 0.5  # Even more relaxed
+            effective_edge_threshold = EDGE_VAR_THRESHOLD * 0.5  # Much lower texture requirement
+            effective_green_threshold = GREEN_RATIO_THRESHOLD + 0.1  # Higher green tolerance
+        else:
+            effective_color_threshold = COLOR_RATIO_THRESHOLD
+            effective_edge_threshold = EDGE_VAR_THRESHOLD
+            effective_green_threshold = GREEN_RATIO_THRESHOLD
 
-        # More lenient checks to reduce false rejections
-        if total_color_ratio <= COLOR_RATIO_THRESHOLD:
-            reason = "Very weak staining detected; may significantly affect accuracy."
-            logger.warning(f"[{filename}] Blood smear very weak stain: {total_color_ratio:.3f}")
-            # Still allow but warn strongly
-            return True, reason
+        # Very lenient checks to accept most images including screen captures
+        warnings = []
+        
+        if total_color_ratio <= effective_color_threshold:
+            if is_screen:
+                warnings.append("Screen capture with weak staining detected - analysis may have reduced accuracy.")
+            else:
+                warnings.append("Very weak staining detected - may significantly affect accuracy.")
+            logger.warning(f"[{filename}] Weak staining: {total_color_ratio:.3f} (threshold: {effective_color_threshold:.3f})")
             
-        if green_ratio >= GREEN_RATIO_THRESHOLD:
-            reason = "Strong green background detected; may affect cell visibility."
-            logger.warning(f"[{filename}] Blood smear strong green background: {green_ratio:.3f}")
-            return True, reason
+        if green_ratio >= effective_green_threshold:
+            if is_screen:
+                warnings.append("Screen capture with green background detected - acceptable for analysis.")
+            else:
+                warnings.append("Strong green background detected - may affect cell visibility.")
+            logger.warning(f"[{filename}] Green background: {green_ratio:.3f}")
             
-        if edge_var <= EDGE_VAR_THRESHOLD:
-            reason = "Very low texture detected; image may be too blurry or uniform."
-            logger.warning(f"[{filename}] Blood smear very low texture: {edge_var:.3f}")
-            return True, reason
-
-        # ✅ Passed all checks
-        logger.info(f"[{filename}] Blood smear check passed. Color: {total_color_ratio:.3f}, Edge: {edge_var:.3f}")
-        return True, ""
+        if edge_var <= effective_edge_threshold:
+            if is_screen:
+                warnings.append("Screen capture with low texture detected - acceptable but may affect precision.")
+            else:
+                warnings.append("Very low texture detected - image may be too blurry or uniform.")
+            logger.warning(f"[{filename}] Low texture: {edge_var:.3f}")
+        
+        # Brightness warnings for screen captures
+        if is_screen:
+            if avg_brightness < MIN_BRIGHTNESS:
+                warnings.append("Screen appears too dark - consider increasing screen brightness.")
+            elif avg_brightness > MAX_BRIGHTNESS:
+                warnings.append("Screen appears too bright - may cause glare issues.")
+        
+        # Still accept the image but with warnings
+        combined_warning = " ".join(warnings) if warnings else ""
+        
+        # ✅ Accept almost all images, especially screen captures
+        logger.info(f"[{filename}] Blood smear check: Color: {total_color_ratio:.3f}, "
+                   f"Edge: {edge_var:.3f}, Screen: {is_screen}, Warnings: {len(warnings)}")
+        
+        return True, combined_warning
         
     except Exception as e:
         reason = f"Error analyzing image content: {e}"
@@ -226,6 +355,13 @@ def preprocess_image(uploaded_file):
             except Exception as e:
                 st.error(f"🚨 Failed to convert image to RGB: {str(e)}")
                 return None
+
+        # Detect and enhance screen-captured images
+        is_screen_capture = detect_screen_capture(img) if SCREEN_CAPTURE_MODE else False
+        if is_screen_capture:
+            logger.info("Screen capture detected - applying enhancement")
+            img = enhance_screen_captured_image(img)
+            st.info("📺 Screen capture detected - image has been enhanced for better analysis")
 
         # Log image properties for debugging
         logger.info(f"Image processed: Size={img.size}, Mode={img.mode}, Format={getattr(img, 'format', 'Unknown')}")
@@ -485,24 +621,31 @@ def main():
         st.info("ℹ️ **Instructions:** Upload a clear blood smear microscopy image. " +
                 "Ensure good lighting, focus, and proper staining for best results.")
 
-        # Enhanced file uploader for mobile compatibility
+        # Enhanced file uploader for mobile compatibility including screen captures
         uploaded = st.file_uploader(
             "Choose a blood smear image", 
             type=["jpg", "jpeg", "png"],
-            help="📱 Mobile users: Use camera or select from gallery. Supported formats: JPG, JPEG, PNG (max 10MB)",
+            help="📱 Mobile users: Use camera or select from gallery. 📺 Screen captures from computers are also supported! Supported formats: JPG, JPEG, PNG (max 10MB)",
             accept_multiple_files=False,
             key="blood_smear_uploader"
         )
         
-        # Mobile-specific upload tips
-        with st.expander("📱 Mobile Upload Tips"):
+        # Enhanced mobile-specific upload tips including screen captures
+        with st.expander("📱 Mobile Upload Tips (Including Screen Captures)"):
             st.markdown("""
             **Having trouble uploading from mobile?**
             
-            **📸 Camera Issues:**
+            **📸 Direct Camera Issues:**
             - Try taking photo first, then upload from gallery
             - Ensure good lighting and steady hands
             - Allow browser camera permissions if prompted
+            
+            **📺 Screen Capture Tips (NEW!):**
+            - ✅ You can now photograph computer screens displaying blood smears!
+            - Position camera straight to avoid distortion
+            - Ensure screen brightness is adequate (not too dark/bright)
+            - Minimize reflections and glare on screen
+            - Hold camera steady to avoid blur
             
             **📁 Gallery Issues:**
             - Wait for image to fully load before selecting
@@ -514,6 +657,8 @@ def main():
             - Try switching between WiFi and mobile data
             - Use Chrome or Safari for best mobile compatibility
             """)
+        
+        st.info("📺 **NEW FEATURE**: This tool now accepts images taken with mobile cameras from computer screens displaying blood smears!")
         
         if uploaded:
             # Status indicator for upload success
