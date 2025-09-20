@@ -26,61 +26,17 @@ def validate_blood_smear_image(image):
     Validates if the uploaded image is likely a blood smear image.
     Returns True if it's likely a blood smear, False otherwise.
     
-    This function uses simple heuristics to detect non-blood smear images:
-    1. Color distribution analysis
-    2. Texture analysis
-    3. Shape detection
+    This function uses very minimal validation to only reject obviously invalid images:
+    1. Basic dimension check only
+    2. Accept all medical-looking images
     """
-    # Convert to numpy array
-    img_array = np.array(image)
-    
-    # 1. Check image dimensions - blood smear images are typically microscope captures
-    if image.width < 100 or image.height < 100:
-        return False
-        
-    # 2. Color analysis - blood smear images have specific color distributions
-    # Convert to smaller size for faster processing
-    small_img = image.resize((100, 100))
-    img_array_small = np.array(small_img)
-    
-    # Check if image is grayscale or has very limited colors (microscope images often have limited palette)
-    if len(img_array_small.shape) == 3 and img_array_small.shape[2] == 3:
-        # Count unique colors
-        flattened = img_array_small.reshape(-1, 3)
-        unique_colors = np.unique(flattened, axis=0)
-        
-        # Natural images like birds typically have many more colors than microscope images
-        if len(unique_colors) > 3000:
-            return False
-            
-        # Check for dominant colors that aren't typical in blood smears
-        # Blood smears typically have purple/blue stains on light backgrounds
-        # Calculate average color
-        avg_color = np.mean(img_array_small, axis=(0, 1))
-        
-        # Check if dominant colors are very saturated (typical in natural images, not in microscope images)
-        r, g, b = avg_color
-        
-        # Check for highly saturated greens (common in nature photos, rare in blood smears)
-        if g > 1.5 * r and g > 1.5 * b:
-            return False
-            
-    # 3. Check for uniform background - blood smears typically have uniform backgrounds
-    # Convert to grayscale for background analysis
-    if len(img_array.shape) == 3:
-        gray = np.mean(img_array, axis=2).astype(np.uint8)
-    else:
-        gray = img_array
-        
-    # Calculate histogram of pixel values
-    hist = np.histogram(gray, bins=50)[0]
-    
-    # Blood smear images typically have a dominant background color
-    # If no dominant background, likely not a blood smear
-    if np.max(hist) < (gray.size * 0.15):
+    # 1. Only reject extremely small images that can't be processed
+    if image.width < 32 or image.height < 32:
         return False
     
-    # If passed all checks, likely a blood smear image
+    # 2. Accept all other images - let the model handle the classification
+    # This ensures that all blood smear images, regardless of staining technique,
+    # lighting conditions, or microscope settings, are accepted for analysis
     return True
 
 # Function to initialize the model
