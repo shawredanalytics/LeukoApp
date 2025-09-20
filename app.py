@@ -9,7 +9,6 @@ import os
 import logging
 import sys
 import numpy as np
-import cv2  # OpenCV for texture analysis
 from collections import OrderedDict
 
 # ----------------- LOGGING SETUP -----------------
@@ -124,9 +123,10 @@ def is_blood_smear(img: Image.Image, filename: str = "unknown"):
         purple_ratio = np.mean((r > 0.4) & (b > 0.3))
         green_ratio = np.mean(g > 0.5)
 
-        # Texture heuristics (edge variance = measure of detail)
-        gray = cv2.cvtColor((arr * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
-        edges = cv2.Sobel(gray, cv2.CV_64F, 1, 1, ksize=3)
+        # Texture heuristics using numpy gradient instead of cv2
+        gray = np.mean(arr, axis=2)  # grayscale approximation
+        gx, gy = np.gradient(gray)
+        edges = np.sqrt(gx**2 + gy**2)
         edge_var = np.var(edges)
 
         # Checks with reasons
