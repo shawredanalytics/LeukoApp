@@ -320,10 +320,6 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Show OpenCV status after Streamlit is initialized
-    if not HAS_OPENCV:
-        st.sidebar.info("ℹ️ Basic image processing active. Install opencv-python for enhanced screen capture support.")
-    
     st.title("🩸 Leuko - Blood Cancer Prediction Tool")
     st.markdown("*AI-powered blood smear analysis for educational purposes*")
     
