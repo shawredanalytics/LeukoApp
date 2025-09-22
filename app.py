@@ -361,6 +361,7 @@ def main():
     
     # Developer Credits with dx.anx platform information + UPDATED CONTACT
     st.markdown("**🏢 Developed by [Shawred Analytics](https://www.shawredanalytics.com) | 📧 shawred.analytics@gmail.com | Part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)**")
+    st.markdown("*With contributions from: Pavan Kumar Didde, Shaik Zuber, Ritabrata Dey, Patrika Chatterjee, Titli Paul, Sumit Mitra*")
     
     st.error("🚨 **IMPORTANT LIMITATION NOTICE**")
     st.markdown("**This tool ONLY detects White Blood Cell (WBC) abnormalities related to leukemia.**")
@@ -1116,6 +1117,20 @@ GoogLeNet(
         - No images are stored on our servers
         - No personal health information is collected
         - Usage statistics are anonymized and used only for improving the model
+        """)
+        
+        st.markdown("---")
+        st.markdown("### 👥 **Contributors**")
+        
+        st.markdown("""
+        This project was made possible by contributions from:
+        
+        - **Pavan Kumar Didde:** Machine Learning Architecture
+        - **Shaik Zuber:** Data Collection and Annotation
+        - **Ritabrata Dey:** Model Training and Optimization
+        - **Patrika Chatterjee:** Medical Validation
+        - **Titli Paul:** UI/UX Design
+        - **Sumit Mitra:** Project Management
         """)
         
         if show_debug:
