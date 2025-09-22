@@ -356,8 +356,13 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    st.title("🩸 Leuko - Blood Cancer Prediction Tool")
-    st.markdown("*AI-powered blood smear analysis for educational purposes*")
+    # Quxat Logo Header - Visible on all pages
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        st.image("quxat_logo.svg", width=150)
+    with col2:
+        st.title("🩸 Leuko - Blood Cancer Prediction Tool")
+        st.markdown("*AI-powered blood smear analysis for educational purposes*")
     
     # Developer Credits with dx.anx platform information + UPDATED CONTACT
     st.markdown("**🏢 Developed by [Shawred Analytics](https://www.shawredanalytics.com) | 📧 shawred.analytics@gmail.com | Part of [dx.anx Platform](https://shawredanalytics.com/dx-anx-analytics)**")
@@ -366,6 +371,10 @@ def main():
     st.markdown("**This tool ONLY detects White Blood Cell (WBC) abnormalities related to leukemia.**")
 
     with st.sidebar:
+        # Quxat Logo in Sidebar
+        st.image("quxat_logo.svg", width=120)
+        st.markdown("---")
+        
         selected = option_menu(
             "Navigation",
             ["Prediction", "Model Info", "About"],
