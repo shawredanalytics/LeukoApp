@@ -855,7 +855,7 @@ def main():
         st.markdown("""
         <div class="feature-card">
             <h3>🔍 Categories</h3>
-            <p><span style="color: #28a745;">✅ <strong>Normal:</strong></span> Routine monitoring</p>
+            <p><span style="color: #28a745;">✅ <strong>Normal:</strong></span> No abnormal forms or patterns detected</p>
             <p><span style="color: #dc3545;">⚠️ <strong>Abnormal:</strong></span> Clinical evaluation needed</p>
         </div>
         """, unsafe_allow_html=True)
