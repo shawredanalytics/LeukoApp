@@ -229,11 +229,11 @@ def preprocess_image(image_bytes):
 
 # Optimized validation function
 @st.cache_data
-def validate_medical_image_fast(image_bytes):
+def validate_medical_image_fast(_image_bytes):
     """Fast validation of medical images with caching"""
     try:
         # Convert bytes to PIL Image
-        image = Image.open(image_bytes)
+        image = Image.open(_image_bytes)
         
         # Quick basic checks
         width, height = image.size
@@ -274,14 +274,14 @@ def validate_medical_image_fast(image_bytes):
 
 # Optimized validation function
 @st.cache_data
-def validate_medical_image(image):
+def validate_medical_image(_image):
     """Fast validation of medical images with caching"""
     try:
         # Convert PIL to numpy array for quick analysis
-        img_array = np.array(image)
+        img_array = np.array(_image)
         
         # Quick basic checks
-        width, height = image.size
+        width, height = _image.size
         
         # Basic size validation
         if width < 100 or height < 100:
@@ -293,7 +293,7 @@ def validate_medical_image(image):
             }
         
         # Quick format check
-        if image.mode not in ['RGB', 'RGBA', 'L']:
+        if _image.mode not in ['RGB', 'RGBA', 'L']:
             return {
                 'is_likely_medical': False,
                 'confidence': 0.0,
@@ -320,7 +320,7 @@ def validate_medical_image(image):
 
 # Optimized image preprocessing with caching
 @st.cache_data
-def preprocess_image(image):
+def preprocess_image(_image):
     """Preprocess uploaded image for binary screening with caching"""
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -328,10 +328,10 @@ def preprocess_image(image):
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
     
-    if image.mode != 'RGB':
-        image = image.convert('RGB')
+    if _image.mode != 'RGB':
+        _image = _image.convert('RGB')
     
-    return transform(image).unsqueeze(0)
+    return transform(_image).unsqueeze(0)
 
 # Binary screening prediction
 def predict_binary_screening(model, image_tensor, device, demo_mode=False):
