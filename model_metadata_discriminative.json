@@ -1,0 +1,18 @@
+{
+  "model_type": "discriminative",
+  "architecture": "GoogLeNet + DiscriminativeClassifier",
+  "num_classes": 4,
+  "class_names": [
+    "ALL",
+    "AML",
+    "CLL",
+    "CML"
+  ],
+  "input_size": [
+    224,
+    224,
+    3
+  ],
+  "created_date": "2024-01-24",
+  "description": "Balanced discriminative model for blood cancer classification"
+}

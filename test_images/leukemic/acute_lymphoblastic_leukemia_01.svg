@@ -1,0 +1,64 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background (blood smear) -->
+  <rect width="400" height="400" fill="#f8e6e6"/>
+  
+  <!-- Fewer red blood cells (typical in leukemia) -->
+  <circle cx="90" cy="80" r="20" fill="#e74c3c" opacity="0.5"/>
+  <circle cx="330" cy="100" r="18" fill="#e74c3c" opacity="0.4"/>
+  <circle cx="350" cy="300" r="19" fill="#e74c3c" opacity="0.5"/>
+  
+  <!-- Lymphoblast (abnormal cell) - Main cell -->
+  <g transform="translate(200,200)">
+    <!-- Cell membrane (enlarged) -->
+    <circle cx="0" cy="0" r="48" fill="#ff9999" stroke="#e74c3c" stroke-width="3"/>
+    
+    <!-- Cytoplasm (basophilic) -->
+    <circle cx="0" cy="0" r="45" fill="#ffb3b3" opacity="0.9"/>
+    
+    <!-- Large immature nucleus -->
+    <circle cx="0" cy="0" r="35" fill="#1a1a1a" opacity="0.95"/>
+    
+    <!-- Prominent nucleoli (characteristic of blasts) -->
+    <circle cx="-8" cy="-10" r="4" fill="#ff6b6b" opacity="0.8"/>
+    <circle cx="10" cy="-5" r="3.5" fill="#ff6b6b" opacity="0.8"/>
+    <circle cx="5" cy="12" r="4.2" fill="#ff6b6b" opacity="0.8"/>
+    
+    <!-- Fine chromatin pattern -->
+    <circle cx="-15" cy="-15" r="1.5" fill="#333333" opacity="0.6"/>
+    <circle cx="18" cy="-18" r="1.2" fill="#333333" opacity="0.6"/>
+    <circle cx="20" cy="8" r="1.8" fill="#333333" opacity="0.6"/>
+    <circle cx="-12" cy="20" r="1.3" fill="#333333" opacity="0.6"/>
+    <circle cx="-20" cy="5" r="1.6" fill="#333333" opacity="0.6"/>
+    
+    <!-- Scanty cytoplasm with few organelles -->
+    <circle cx="-38" cy="15" r="0.8" fill="#ff8080"/>
+    <circle cx="35" cy="-20" r="0.6" fill="#ff8080"/>
+    <circle cx="-35" cy="-25" r="0.7" fill="#ff8080"/>
+  </g>
+  
+  <!-- Additional blast cells (multiple abnormal cells) -->
+  <g transform="translate(120,120)">
+    <circle cx="0" cy="0" r="35" fill="#ff9999" stroke="#e74c3c" stroke-width="2"/>
+    <circle cx="0" cy="0" r="32" fill="#ffb3b3" opacity="0.9"/>
+    <circle cx="0" cy="0" r="25" fill="#1a1a1a" opacity="0.95"/>
+    <circle cx="-5" cy="-8" r="3" fill="#ff6b6b" opacity="0.8"/>
+    <circle cx="8" cy="6" r="2.5" fill="#ff6b6b" opacity="0.8"/>
+  </g>
+  
+  <g transform="translate(300,280)">
+    <circle cx="0" cy="0" r="32" fill="#ff9999" stroke="#e74c3c" stroke-width="2"/>
+    <circle cx="0" cy="0" r="29" fill="#ffb3b3" opacity="0.9"/>
+    <circle cx="0" cy="0" r="22" fill="#1a1a1a" opacity="0.95"/>
+    <circle cx="-6" cy="-5" r="2.8" fill="#ff6b6b" opacity="0.8"/>
+    <circle cx="7" cy="8" r="3.2" fill="#ff6b6b" opacity="0.8"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="200" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#c0392b">
+    Acute Lymphoblastic Leukemia (ALL) - Blast Cells
+  </text>
+  
+  <!-- Scale indicator -->
+  <line x1="20" y1="370" x2="70" y2="370" stroke="#2c3e50" stroke-width="2"/>
+  <text x="45" y="385" text-anchor="middle" font-family="Arial" font-size="10" fill="#2c3e50">10μm</text>
+</svg>

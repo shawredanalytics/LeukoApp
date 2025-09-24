@@ -1,0 +1,171 @@
+{
+  "dataset_info": {
+    "name": "LeukoApp Test Dataset",
+    "version": "1.0",
+    "description": "Representative WBC smear images for testing the LeukoApp leukemia detection model",
+    "created_date": "2024-01-24",
+    "total_images": 6,
+    "categories": ["normal", "leukemic"]
+  },
+  "normal_samples": {
+    "normal_neutrophil_01.svg": {
+      "cell_type": "Neutrophil",
+      "classification": "Normal",
+      "expected_result": "Normal/Healthy",
+      "confidence_range": "85-95%",
+      "description": "Mature neutrophil with segmented nucleus (3-5 lobes), fine chromatin, and neutral-staining cytoplasm with fine granules",
+      "key_features": [
+        "Multi-lobed nucleus",
+        "Fine chromatin pattern",
+        "Neutral cytoplasm",
+        "Appropriate cell size (12-15μm)"
+      ],
+      "staining": "Wright-Giemsa",
+      "magnification": "1000x oil immersion equivalent"
+    },
+    "normal_lymphocyte_01.svg": {
+      "cell_type": "Lymphocyte",
+      "classification": "Normal",
+      "expected_result": "Normal/Healthy",
+      "confidence_range": "80-90%",
+      "description": "Small mature lymphocyte with round, dense nucleus and scanty basophilic cytoplasm",
+      "key_features": [
+        "Round, dense nucleus",
+        "High nuclear-to-cytoplasmic ratio",
+        "Basophilic cytoplasm",
+        "Small cell size (7-10μm)"
+      ],
+      "staining": "Wright-Giemsa",
+      "magnification": "1000x oil immersion equivalent"
+    },
+    "normal_monocyte_01.svg": {
+      "cell_type": "Monocyte",
+      "classification": "Normal",
+      "expected_result": "Normal/Healthy",
+      "confidence_range": "75-85%",
+      "description": "Large monocyte with kidney-shaped nucleus, fine chromatin, and abundant gray-blue cytoplasm",
+      "key_features": [
+        "Kidney-shaped nucleus",
+        "Fine chromatin pattern",
+        "Abundant cytoplasm",
+        "Largest WBC (15-20μm)"
+      ],
+      "staining": "Wright-Giemsa",
+      "magnification": "1000x oil immersion equivalent"
+    }
+  },
+  "leukemic_samples": {
+    "acute_lymphoblastic_leukemia_01.svg": {
+      "cell_type": "Lymphoblast",
+      "classification": "Leukemic",
+      "leukemia_type": "Acute Lymphoblastic Leukemia (ALL)",
+      "expected_result": "Leukemic/Abnormal",
+      "confidence_range": "90-98%",
+      "description": "Immature lymphoblast with large nucleus, prominent nucleoli, and scanty basophilic cytoplasm",
+      "key_features": [
+        "Large immature nucleus",
+        "Prominent nucleoli (2-4)",
+        "Fine chromatin pattern",
+        "High nuclear-to-cytoplasmic ratio",
+        "Scanty cytoplasm"
+      ],
+      "pathological_indicators": [
+        "Blast cell morphology",
+        "Immature chromatin",
+        "Multiple nucleoli",
+        "Increased cell size"
+      ],
+      "staining": "Wright-Giemsa",
+      "magnification": "1000x oil immersion equivalent"
+    },
+    "chronic_myeloid_leukemia_01.svg": {
+      "cell_type": "Abnormal Myeloid Cell",
+      "classification": "Leukemic",
+      "leukemia_type": "Chronic Myeloid Leukemia (CML)",
+      "expected_result": "Leukemic/Abnormal",
+      "confidence_range": "85-95%",
+      "description": "Abnormal myeloid cell with irregular nucleus, excessive granulation, and possible Auer rods",
+      "key_features": [
+        "Irregular nuclear shape",
+        "Abnormal chromatin clumping",
+        "Excessive granulation",
+        "Auer rods present",
+        "Dysplastic features"
+      ],
+      "pathological_indicators": [
+        "Nuclear dysplasia",
+        "Abnormal granulation",
+        "Auer rods (pathognomonic)",
+        "Cellular immaturity"
+      ],
+      "staining": "Wright-Giemsa",
+      "magnification": "1000x oil immersion equivalent"
+    },
+    "acute_myeloid_leukemia_01.svg": {
+      "cell_type": "Myeloblast",
+      "classification": "Leukemic",
+      "leukemia_type": "Acute Myeloid Leukemia (AML)",
+      "expected_result": "Leukemic/Abnormal",
+      "confidence_range": "92-99%",
+      "description": "Myeloblast with large nucleus, multiple prominent nucleoli, and characteristic Auer rods",
+      "key_features": [
+        "Large immature nucleus",
+        "Multiple prominent nucleoli",
+        "Fine chromatin pattern",
+        "Auer rods (pathognomonic for AML)",
+        "Azurophilic granules"
+      ],
+      "pathological_indicators": [
+        "Blast cell morphology",
+        "Auer rods (diagnostic)",
+        "Multiple nucleoli",
+        "Immature myeloid features",
+        "Increased cell size"
+      ],
+      "staining": "Wright-Giemsa",
+      "magnification": "1000x oil immersion equivalent"
+    }
+  },
+  "testing_guidelines": {
+    "model_performance_expectations": {
+      "normal_samples": {
+        "expected_classification": "Normal/Healthy",
+        "acceptable_confidence": ">75%",
+        "false_positive_tolerance": "<10%"
+      },
+      "leukemic_samples": {
+        "expected_classification": "Leukemic/Abnormal",
+        "acceptable_confidence": ">85%",
+        "false_negative_tolerance": "<5%"
+      }
+    },
+    "validation_criteria": {
+      "image_acceptance": "All images should pass blood smear validation",
+      "processing_time": "<5 seconds per image",
+      "memory_usage": "Monitor for memory leaks during batch processing"
+    },
+    "troubleshooting": {
+      "if_validation_fails": "Check image format, ensure SVG is properly rendered",
+      "if_low_confidence": "Normal for SVG test images, real microscopy images typically show higher confidence",
+      "if_wrong_classification": "May indicate model needs retraining or parameter adjustment"
+    }
+  },
+  "usage_instructions": {
+    "individual_testing": "Upload each image separately through the LeukoApp interface",
+    "batch_testing": "Use the provided zip file for systematic testing",
+    "expected_workflow": [
+      "1. Upload image",
+      "2. Verify image passes validation",
+      "3. Check prediction result matches expected classification",
+      "4. Verify confidence score is within acceptable range",
+      "5. Review detailed analysis if available"
+    ]
+  },
+  "technical_notes": {
+    "image_format": "SVG vector format for scalability and editability",
+    "color_space": "RGB with medical staining simulation",
+    "resolution": "400x400 pixels base resolution",
+    "file_sizes": "Typically 2-5KB per SVG file",
+    "compatibility": "Should work with both GoogLeNet and ViT-Large models"
+  }
+}

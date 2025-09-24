@@ -1,0 +1,14 @@
+{
+  "model_type": "binary_screening_fixed",
+  "classes": [
+    "Normal",
+    "Leukemia"
+  ],
+  "input_size": [
+    224,
+    224
+  ],
+  "architecture": "GoogleNet + BinaryScreeningClassifier",
+  "bias_correction": "Applied bias adjustment and temperature scaling",
+  "version": "1.1_fixed"
+}

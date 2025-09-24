@@ -1,0 +1,90 @@
+{
+  "evaluation_date": "2025-09-24T13:24:47.392850",
+  "device": "cpu",
+  "results": [
+    {
+      "model_name": "Best Binary Model",
+      "model_path": "best_binary_model.pth",
+      "accuracy": 0.5,
+      "normal_predictions": 0,
+      "abnormal_predictions": 200,
+      "normal_ratio": 0.0,
+      "abnormal_ratio": 1.0,
+      "balance_score": 0.0,
+      "avg_confidence": 0.526217238008976,
+      "overall_score": 0.3052434476017952,
+      "is_binary": true,
+      "status": "success"
+    },
+    {
+      "model_name": "Blood Smear Screening Model",
+      "model_path": "blood_smear_screening_model.pth",
+      "accuracy": 0.51,
+      "normal_predictions": 32,
+      "abnormal_predictions": 168,
+      "normal_ratio": 0.16,
+      "abnormal_ratio": 0.84,
+      "balance_score": 0.32000000000000006,
+      "avg_confidence": 0.5830915534496307,
+      "overall_score": 0.4486183106899262,
+      "is_binary": true,
+      "status": "success"
+    },
+    {
+      "model_name": "Blood Smear Screening Model (Fixed)",
+      "model_path": "blood_smear_screening_model_fixed.pth",
+      "accuracy": 0.5,
+      "normal_predictions": 0,
+      "abnormal_predictions": 200,
+      "normal_ratio": 0.0,
+      "abnormal_ratio": 1.0,
+      "balance_score": 0.0,
+      "avg_confidence": 0.5862798914313316,
+      "overall_score": 0.31725597828626634,
+      "is_binary": true,
+      "status": "success"
+    },
+    {
+      "model_name": "Discriminative Model",
+      "model_path": "blood_cancer_model_discriminative.pth",
+      "status": "error",
+      "error": "Error(s) in loading state_dict for GoogLeNet:\n\tsize mismatch for fc.attention.0.weight: copying a param with shape torch.Size([256, 512]) from checkpoint, the shape in current model is torch.Size([128, 256]).\n\tsize mismatch for fc.attention.0.bias: copying a param with shape torch.Size([256]) from checkpoint, the shape in current model is torch.Size([128]).\n\tsize mismatch for fc.attention.2.weight: copying a param with shape torch.Size([512, 256]) from checkpoint, the shape in current model is torch.Size([256, 128]).\n\tsize mismatch for fc.attention.2.bias: copying a param with shape torch.Size([512]) from checkpoint, the shape in current model is torch.Size([256]).\n\tsize mismatch for fc.classifier.0.weight: copying a param with shape torch.Size([256, 768]) from checkpoint, the shape in current model is torch.Size([256, 512]).\n\tsize mismatch for fc.classifier.6.weight: copying a param with shape torch.Size([4, 64]) from checkpoint, the shape in current model is torch.Size([2, 64]).\n\tsize mismatch for fc.classifier.6.bias: copying a param with shape torch.Size([4]) from checkpoint, the shape in current model is torch.Size([2]).",
+      "overall_score": 0
+    },
+    {
+      "model_name": "Random Balanced Model",
+      "model_path": "blood_cancer_model_random_balanced.pth",
+      "accuracy": 0.5,
+      "normal_predictions": 0,
+      "abnormal_predictions": 200,
+      "normal_ratio": 0.0,
+      "abnormal_ratio": 1.0,
+      "balance_score": 0.0,
+      "avg_confidence": 0.7,
+      "overall_score": 0.33999999999999997,
+      "is_binary": false,
+      "status": "success"
+    },
+    {
+      "model_name": "Standard Blood Cancer Model",
+      "model_path": "blood_cancer_model.pth",
+      "status": "error",
+      "error": "Error(s) in loading state_dict for GoogLeNet:\n\tsize mismatch for fc.classifier.0.weight: copying a param with shape torch.Size([512, 1024]) from checkpoint, the shape in current model is torch.Size([256, 512]).\n\tsize mismatch for fc.classifier.0.bias: copying a param with shape torch.Size([512]) from checkpoint, the shape in current model is torch.Size([256]).\n\tsize mismatch for fc.classifier.6.weight: copying a param with shape torch.Size([64, 128]) from checkpoint, the shape in current model is torch.Size([2, 64]).\n\tsize mismatch for fc.classifier.6.bias: copying a param with shape torch.Size([64]) from checkpoint, the shape in current model is torch.Size([2]).",
+      "overall_score": 0
+    }
+  ],
+  "recommended_model": {
+    "model_name": "Blood Smear Screening Model",
+    "model_path": "blood_smear_screening_model.pth",
+    "accuracy": 0.51,
+    "normal_predictions": 32,
+    "abnormal_predictions": 168,
+    "normal_ratio": 0.16,
+    "abnormal_ratio": 0.84,
+    "balance_score": 0.32000000000000006,
+    "avg_confidence": 0.5830915534496307,
+    "overall_score": 0.4486183106899262,
+    "is_binary": true,
+    "status": "success"
+  }
+}

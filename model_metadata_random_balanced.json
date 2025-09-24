@@ -1,0 +1,14 @@
+{
+  "model_type": "googlenet",
+  "num_classes": 4,
+  "class_names": [
+    "ALL",
+    "AML",
+    "CLL",
+    "CML"
+  ],
+  "architecture": "random_balanced",
+  "balance_ratio": "1.76:1",
+  "description": "Random balanced model to replace CLL-biased version",
+  "aux_logits": false
+}

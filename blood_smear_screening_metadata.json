@@ -1,0 +1,15 @@
+{
+  "model_type": "binary_screening_balanced",
+  "classes": [
+    "Normal",
+    "Leukemia"
+  ],
+  "input_size": [
+    224,
+    224
+  ],
+  "architecture": "GoogleNet + BinaryScreeningClassifier",
+  "bias_correction": "Applied balanced bias adjustment and moderate temperature scaling",
+  "version": "1.2_balanced",
+  "performance_notes": "Optimized for balanced detection of normal and cancerous samples"
+}
