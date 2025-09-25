@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Streamlit Entry Point for Leuko App
-Updated: 2025-09-25 - Cloud deployment compatible
+Updated: 2025-01-27 - Force fresh deployment
 
 This is the main entry point for the Leuko App Streamlit application.
 It imports and runs the main application from app_binary_screening.py
