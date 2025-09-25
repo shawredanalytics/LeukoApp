@@ -21,10 +21,14 @@ st.set_page_config(
 
 def main():
     try:
+        # Display loading message
+        st.title("🩸 Leuko - Blood Cancer Screening Tool")
+        st.markdown("### AI-Powered Blood Smear Analysis")
+        
         # Check if we have the required model files
         model_files = [
             "blood_smear_screening_model.pth",
-            "blood_cancer_model.pth",
+            "blood_cancer_model.pth", 
             "best_binary_model.pth"
         ]
         
@@ -35,8 +39,16 @@ def main():
             st.info("💡 Running in demonstration mode with simplified functionality.")
             
             # Import and run cloud-compatible version
-            from streamlit_app_cloud import main as cloud_main
-            cloud_main()
+            try:
+                from streamlit_app_cloud import main as cloud_main
+                cloud_main()
+            except ImportError:
+                st.error("❌ Cloud module not found. Running basic interface.")
+                st.markdown("**Basic Interface**: Please upload an image to test the interface.")
+                uploaded_file = st.file_uploader("Choose an image file", type=['png', 'jpg', 'jpeg', 'svg'])
+                if uploaded_file:
+                    st.success("✅ File uploaded successfully!")
+                    st.info("In full deployment, this would be analyzed by the AI model.")
         else:
             # Import the main application with full functionality
             from app_binary_screening import main as app_main
