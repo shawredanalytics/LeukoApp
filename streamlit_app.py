@@ -2,6 +2,7 @@
 """
 Streamlit Cloud Entry Point for Leuko App
 Standard entry point that Streamlit Cloud expects
+Updated: 2025-09-25 - Force redeploy
 """
 
 import streamlit as st
