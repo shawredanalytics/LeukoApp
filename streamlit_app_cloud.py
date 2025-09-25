@@ -2,6 +2,7 @@
 """
 Streamlit Cloud Entry Point for Leuko App
 Cloud-compatible version with fallback for missing model files
+Updated: 2025-01-27 - Enhanced cloud deployment
 """
 
 import streamlit as st
@@ -14,7 +15,7 @@ import io
 
 # Set page configuration
 st.set_page_config(
-    page_title="Leuko - Blood Cancer Screening Tool",
+    page_title="Leuko - AI-Powered Blood Cancer Screening",
     page_icon="🩸",
     layout="wide",
     initial_sidebar_state="expanded"
