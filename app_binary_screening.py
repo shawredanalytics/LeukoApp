@@ -375,7 +375,7 @@ def predict_binary_screening(model, image_tensor, device, demo_mode=False):
             
             # BIAS CORRECTION: Balanced classification logic
             # Use the higher probability for classification, but apply minimum threshold for abnormal
-            ABNORMAL_THRESHOLD = 0.52  # Minimum threshold for abnormal classification
+            ABNORMAL_THRESHOLD = 0.50  # Minimum threshold for abnormal classification (improved sensitivity)
             
             normal_prob = probabilities[0, 0].item()
             abnormal_prob = probabilities[0, 1].item()

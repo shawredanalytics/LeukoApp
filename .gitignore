@@ -19,8 +19,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
+streamlit_env/
 venv/
 env/
 ENV/
@@ -38,6 +40,38 @@ Thumbs.db
 # Logs
 *.log
 
-# Temporary files
-*.tmp
-*.temp
+# Test files and debug scripts
+test_*.py
+debug_*.py
+quick_*.py
+analyze_*.py
+create_*.py
+fix_*.py
+improve_*.py
+retrain_*.py
+train_*.py
+evaluate_*.py
+fine_tune_*.py
+
+# Backup files
+*_backup.py
+*_backup.pth
+
+# Analysis results
+*.json
+*.png
+!metadata.json
+
+# Zip files
+*.zip
+
+# Model files (keep only the main ones)
+blood_cancer_model_backup.pth
+blood_cancer_model_discriminative.pth
+blood_cancer_model_original_biased.pth
+blood_cancer_model_random_balanced.pth
+blood_smear_screening_model_fixed.pth
+best_binary_model.pth
+
+# Documentation
+kaggle_setup_guide.md
