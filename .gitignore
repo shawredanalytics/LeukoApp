@@ -66,12 +66,12 @@ fine_tune_*.py
 *.zip
 
 # Model files (keep only the main ones)
-blood_cancer_model_backup.pth
-blood_cancer_model_discriminative.pth
-blood_cancer_model_original_biased.pth
-blood_cancer_model_random_balanced.pth
-blood_smear_screening_model_fixed.pth
-best_binary_model.pth
+# blood_cancer_model_backup.pth
+# blood_cancer_model_discriminative.pth
+# blood_cancer_model_original_biased.pth
+# blood_cancer_model_random_balanced.pth
+# blood_smear_screening_model_fixed.pth
+# best_binary_model.pth
 
 # Documentation
 kaggle_setup_guide.md
