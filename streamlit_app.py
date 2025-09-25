@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 """
-Streamlit Cloud Entry Point for Leuko App
-Standard entry point that Streamlit Cloud expects
-Updated: 2025-09-25 - Force redeploy
+Streamlit Entry Point for Leuko App
+Updated: 2025-09-25 - Cloud deployment compatible
+
+This is the main entry point for the Leuko App Streamlit application.
+It imports and runs the main application from app_binary_screening.py
 """
 
 import streamlit as st
 import sys
 import os
 
-# Add current directory to path for imports
-current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
-
-# Set page configuration
+# Set page configuration first
 st.set_page_config(
     page_title="Leuko - Blood Cancer Screening Tool",
     page_icon="🩸",
@@ -22,22 +19,46 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Import and run the main binary screening app
-try:
-    from app_binary_screening import main
-    
-    # Run the main application
-    if __name__ == "__main__":
-        main()
-    else:
-        main()
+def main():
+    try:
+        # Check if we have the required model files
+        model_files = [
+            "blood_smear_screening_model.pth",
+            "blood_cancer_model.pth",
+            "best_binary_model.pth"
+        ]
         
-except ImportError as e:
-    st.error("❌ Failed to import main application module")
-    st.error(f"Import error: {str(e)}")
-    st.info("Please ensure all required files are available in the deployment.")
-    
-except Exception as e:
-    st.error("❌ Error running the application")
-    st.error(f"Runtime error: {str(e)}")
-    st.info("Please check the application logs for more details.")
+        missing_models = [f for f in model_files if not os.path.exists(f)]
+        
+        if missing_models:
+            st.warning(f"⚠️ **Cloud Deployment Mode**: Some model files are not available: {', '.join(missing_models)}")
+            st.info("💡 Running in demonstration mode with simplified functionality.")
+            
+            # Import and run cloud-compatible version
+            from streamlit_app_cloud import main as cloud_main
+            cloud_main()
+        else:
+            # Import the main application with full functionality
+            from app_binary_screening import main as app_main
+            app_main()
+        
+    except ImportError as e:
+        st.error(f"❌ Failed to import application: {str(e)}")
+        st.info("Please ensure all required files are present and dependencies are installed.")
+        
+        # Fallback to basic interface
+        st.title("🩸 Leuko - Blood Cancer Screening Tool")
+        st.markdown("### Application Loading Error")
+        st.markdown("The application encountered an import error. Please check the deployment configuration.")
+        
+    except Exception as e:
+        st.error(f"❌ Application error: {str(e)}")
+        st.info("Please check the application logs for more details.")
+        
+        # Show basic error interface
+        st.title("🩸 Leuko - Blood Cancer Screening Tool")
+        st.markdown("### Runtime Error")
+        st.markdown("The application encountered a runtime error. Please try refreshing the page.")
+
+if __name__ == "__main__":
+    main()
